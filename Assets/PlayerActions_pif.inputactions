@@ -22,6 +22,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Glide",
+                    "type": "Button",
+                    "id": "a098af96-9c89-4130-9b26-aaee07da6fc4",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "WallCling",
+                    "type": "Button",
+                    "id": "6234bf3a-1f11-4db1-ac0c-9dcbc61d4b9c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -66,6 +84,28 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "76f90b52-3756-4772-8979-127254cb4fda",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "Glide",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "db47dfdd-255a-4e2d-a53e-d2deff1d7cd3",
+                    "path": "<Keyboard>/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "WallCling",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
