@@ -70,22 +70,20 @@ public class PlayerController_pif : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log("is wall clinging: " + isWallClinging);
-        Debug.Log("is grounded: " + isGrounded);
         Vector2 moveInput = moveAction.ReadValue<Vector2>();
-        
+
         // Handle jump input buffering FIRST (before wall clinging to give ground jumps priority)
         if (jumpAction.triggered)
         {
             jumpBufferTimer = jumpBufferTime; // Start the buffer timer
         }
-        
+
         // Decrease buffer timer
         if (jumpBufferTimer > 0f)
         {
             jumpBufferTimer -= Time.deltaTime;
         }
-        
+
         // Update coyote timer
         if (isGrounded)
         {
@@ -98,7 +96,7 @@ public class PlayerController_pif : MonoBehaviour
                     isFastFalling = false;
                     // Don't add upward velocity when landing as it would interfere with ground contact
                 }
-                
+
                 coyoteTimer = coyoteTime; // Reset coyote timer when landing
                 leftGroundByJumping = false; // Reset jump flag when landing
                 sprayUsedThisJump = false; // Reset spray availability when landing
@@ -111,17 +109,17 @@ public class PlayerController_pif : MonoBehaviour
             {
                 coyoteTimer = coyoteTime; // Start coyote timer when leaving ground naturally
             }
-            
+
             // Decrease coyote timer when in air
             if (!leftGroundByJumping)
             {
                 coyoteTimer -= Time.deltaTime;
             }
         }
-        
+
         // Store current grounded state for next frame
         wasGroundedLastFrame = isGrounded;
-        
+
         // Execute jump if we have a buffered input and we're grounded OR within coyote time (and didn't leave by jumping)
         if (jumpBufferTimer > 0f && (isGrounded || (coyoteTimer > 0f && !leftGroundByJumping)))
         {
@@ -132,19 +130,19 @@ public class PlayerController_pif : MonoBehaviour
             isJumping = true; // Start tracking the jump
             jumpTimeCounter = 0f; // Reset jump time counter
         }
-        
-    
+
+
         HandleWallClinging(moveInput);
-        
+
         HandleGliding(moveInput);
 
         HandleFastFalling();
-        
+
         HandleSpray(moveInput);
-        
+
         //(modified by gliding and wall cling state)
         HandleHorizontalMovement(moveInput);
-          // Handle variable jump height
+        // Handle variable jump height
         if (isJumping && !isGliding && !isWallClinging) // Don't allow variable jump while gliding or wall clinging (but allow during wall kick-off)
         {
             // If jump button is still held and we haven't exceeded max jump time
@@ -154,7 +152,7 @@ public class PlayerController_pif : MonoBehaviour
                 // Continue applying upward force (diminishing over time)
                 float jumpMultiplier = 1f - (jumpTimeCounter / maxJumpTime);
                 float newVerticalVelocity = rb.linearVelocity.y + (jumpForce * jumpMultiplier * Time.deltaTime);
-                
+
                 // Preserve horizontal velocity if wall kicking off
                 if (isWallKickingOff)
                 {
@@ -172,7 +170,7 @@ public class PlayerController_pif : MonoBehaviour
                 {
                     // Reduce upward velocity when jump is released early
                     float newVerticalVelocity = rb.linearVelocity.y * jumpReleaseMultiplier;
-                    
+
                     // Preserve horizontal velocity if wall kicking off
                     if (isWallKickingOff)
                     {
@@ -186,19 +184,19 @@ public class PlayerController_pif : MonoBehaviour
                 isJumping = false;
             }
         }
-        
+
         // Reset jumping state when grounded
         if (isGrounded && rb.linearVelocity.y <= 0.1f)
         {
             isJumping = false;
         }
-        
+
         // Update gravity based on current state
         UpdateGravity();
-        
+
         // Apply terminal velocity limit
         ApplyTerminalVelocity();
-        
+
         // Handle wall kick-off timer
         if (isWallKickingOff)
         {
@@ -218,6 +216,11 @@ public class PlayerController_pif : MonoBehaviour
         else if (rb.linearVelocity.x < 0)
         {
             spriteRenderer.flipX = true;
+        }
+
+        if (transform.position.y < -30)
+        {
+            Die();
         }
     }
     
@@ -741,7 +744,7 @@ public class PlayerController_pif : MonoBehaviour
     private void Die()
     {
         // Reset position to origin
-        transform.position = Vector3.zero;
+        transform.position = new Vector3(-36, -11, 0);
         
         // Reset velocity
         rb.linearVelocity = Vector2.zero;
