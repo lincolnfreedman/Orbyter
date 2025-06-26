@@ -51,9 +51,6 @@ public class PlayerController_pif : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private int wallDirection = 0; // Direction of the wall we're clinging to (-1 for left wall, 1 for right wall)
     private float wallKickOffTimer = 0f; // Timer for wall kick-off duration
-    private float wallClingSoundCooldown = 0f; // Cooldown to prevent wall cling sound spam
-    private bool justReleasedFromWall = false; // Flag to prevent immediate re-clinging after release
-    private bool jumpSoundPlayed = false; // Flag to ensure jump sound only plays once per jump
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
@@ -103,7 +100,6 @@ public class PlayerController_pif : MonoBehaviour
                 coyoteTimer = coyoteTime; // Reset coyote timer when landing
                 leftGroundByJumping = false; // Reset jump flag when landing
                 sprayUsedThisJump = false; // Reset spray availability when landing
-                sprayCooldownTimer = 0f; // Reset spray cooldown immediately when landing
             }
         }
         else
@@ -133,7 +129,6 @@ public class PlayerController_pif : MonoBehaviour
             leftGroundByJumping = true; // Mark that we left ground by jumping
             isJumping = true; // Start tracking the jump
             jumpTimeCounter = 0f; // Reset jump time counter
-            jumpSoundPlayed = false; // Reset jump sound flag for new jump
         }
 
 
@@ -153,14 +148,6 @@ public class PlayerController_pif : MonoBehaviour
             // If jump button is still held and we haven't exceeded max jump time
             if (jumpAction.IsPressed() && jumpTimeCounter < maxJumpTime)
             {
-                // Play jump sound only once at the beginning of the jump
-                if (!jumpSoundPlayed)
-                {
-                    SFXManager_pip.Instance.PlayJump();
-                    Debug.Log("Playing jump sound");
-                    jumpSoundPlayed = true;
-                }
-                
                 jumpTimeCounter += Time.deltaTime;
                 // Continue applying upward force (diminishing over time)
                 float jumpMultiplier = 1f - (jumpTimeCounter / maxJumpTime);
@@ -231,9 +218,6 @@ public class PlayerController_pif : MonoBehaviour
             spriteRenderer.flipX = true;
         }
 
-        // Handle walking SFX
-        HandleWalkingSFX();
-
         if (transform.position.y < -30)
         {
             Die();
@@ -296,24 +280,9 @@ public class PlayerController_pif : MonoBehaviour
     
     private void HandleSpray(Vector2 moveInput)
     {
-        // Update spray cooldown timer
-        if (sprayCooldownTimer > 0f)
+        // Check if spray button is pressed and spray hasn't been used this jump
+        if (sprayAction.triggered && !sprayUsedThisJump)
         {
-            sprayCooldownTimer -= Time.deltaTime;
-        }
-        
-        // Reset spray availability if grounded (allow spray while grounded)
-        if (isGrounded)
-        {
-            sprayUsedThisJump = false;
-        }
-        
-        // Check if spray button is pressed, cooldown is finished, and spray hasn't been used this jump (for air usage)
-        bool canSpray = sprayAction.triggered && sprayCooldownTimer <= 0f && (!sprayUsedThisJump || isGrounded);
-        
-        if (canSpray)
-        {
-            SFXManager_pip.Instance.PlayGalaxseaSpray();
             // Get separate horizontal and vertical inputs for spray direction
             float horizontal = moveAction.ReadValue<Vector2>().x;
             float vertical = verticalAction.ReadValue<float>();
@@ -330,9 +299,8 @@ public class PlayerController_pif : MonoBehaviour
             // Add spray velocity instead of setting it
             rb.linearVelocity = sprayDirection * sprayForce;
             
-            // Start spray duration, cooldown, and mark as used
+            // Start spray duration and mark as used
             sprayTimer = sprayDuration;
-            sprayCooldownTimer = sprayCooldown;
             sprayUsedThisJump = true;
             
             // Set spray state
@@ -405,13 +373,8 @@ public class PlayerController_pif : MonoBehaviour
     
     private void HandleWallClinging(Vector2 moveInput)
     {
+        // Update isGrounded with the more reliable check
         isGrounded = IsStandingOnSurface();
-        
-        // Update wall cling sound cooldown
-        if (wallClingSoundCooldown > 0f)
-        {
-            wallClingSoundCooldown -= Time.deltaTime;
-        }
         
         // Don't allow wall clinging if currently wall kicking off or if grounded
         if (isWallKickingOff || isGrounded)
@@ -429,8 +392,7 @@ public class PlayerController_pif : MonoBehaviour
         if (IsTouchingClimbableWall())
         {
             // Only start wall clinging if we have negative velocity (falling), but continue if already clinging
-            // Also prevent immediate re-clinging after intentional release
-            if (!isWallClinging && rb.linearVelocity.y < 0 && !justReleasedFromWall)
+            if (!isWallClinging && rb.linearVelocity.y < 0)
             {
                 // Cancel fast fall if active before wall clinging
                 if (isFastFalling)
@@ -439,21 +401,13 @@ public class PlayerController_pif : MonoBehaviour
                     // Add upward velocity to counter the fast fall
                     rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
                 }
-
+                
                 // Start wall clinging (only when falling)
                 isWallClinging = true;
                 isJumping = false; // End any current jump
                 isGliding = false; // End any current glide
                 wallDirection = GetWallDirection(); // Store which side the wall is on
                 sprayUsedThisJump = false; // Reset spray availability when wall clinging
-                
-                // Play wall cling sound only if cooldown has expired
-                if (wallClingSoundCooldown <= 0f)
-                {
-                    SFXManager_pip.Instance.PlayWallCling();
-                    Debug.Log("playing wall cling sound");
-                    wallClingSoundCooldown = 0.5f; // Set cooldown to prevent spam (0.5 seconds)
-                }
             }
             
             // If we're wall clinging (either just started or continuing), maintain it
@@ -475,7 +429,6 @@ public class PlayerController_pif : MonoBehaviour
                     
                     isJumping = true;
                     jumpTimeCounter = 0f;
-                    jumpSoundPlayed = false; // Reset jump sound flag for wall jump
                     jumpBufferTimer = 0f; // Clear jump buffer
                     coyoteTimer = 0f; // Clear coyote timer after wall jumping
                     leftGroundByJumping = true; // Mark that we left ground by jumping (prevents coyote time abuse)
@@ -490,7 +443,6 @@ public class PlayerController_pif : MonoBehaviour
                         {
                             isWallClinging = false;
                             wallDirection = 0;
-                            justReleasedFromWall = true; // Mark that we intentionally released
                         }
                         else
                         {
@@ -513,12 +465,6 @@ public class PlayerController_pif : MonoBehaviour
             {
                 isWallClinging = false;
                 wallDirection = 0;
-            }
-            
-            // Reset the release flag when no longer touching a wall
-            if (justReleasedFromWall)
-            {
-                justReleasedFromWall = false;
             }
         }
     }
@@ -819,16 +765,12 @@ public class PlayerController_pif : MonoBehaviour
         jumpBufferTimer = 0f;
         coyoteTimer = 0f;
         sprayTimer = 0f;
-        sprayCooldownTimer = 0f;
         wallKickOffTimer = 0f;
-        wallClingSoundCooldown = 0f;
         
         // Reset movement flags
         leftGroundByJumping = false;
         wasGroundedLastFrame = false;
         sprayUsedThisJump = false;
-        justReleasedFromWall = false;
-        jumpSoundPlayed = false;
         
         // Reset direction and wall states
         facingDirection = 1; // Reset to facing right
@@ -836,38 +778,5 @@ public class PlayerController_pif : MonoBehaviour
         
         // Reset gravity scale to default
         rb.gravityScale = gravityWhileFalling;
-        
-        // Stop walking SFX
-        if (SFXManager_pip.Instance != null)
-        {
-            SFXManager_pip.Instance.StopPlayingWalking();
-        }
-    }
-
-    private void HandleWalkingSFX()
-    {
-        // Check if player should be playing walking sound
-        bool shouldPlayWalking = isGrounded && 
-                                Mathf.Abs(rb.linearVelocity.x) > 0.1f && 
-                                !isWallClinging && 
-                                !isSpraying;
-        
-        if (shouldPlayWalking)
-        {
-            // Start walking sound if not already playing
-            if (SFXManager_pip.Instance != null)
-            {
-                Debug.Log("Playing walking sound");
-                SFXManager_pip.Instance.PlayWalking();
-            }
-        }
-        else
-        {
-            // Stop walking sound if it's playing
-            if (SFXManager_pip.Instance != null)
-            {
-                SFXManager_pip.Instance.StopPlayingWalking();
-            }
-        }
     }
 }
