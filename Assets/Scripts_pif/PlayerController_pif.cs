@@ -46,6 +46,8 @@ public class PlayerController_pif : MonoBehaviour
     private InputAction glideAction;    
     private InputAction fastFallAction;
     private InputAction sprayAction;
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
     private int wallDirection = 0; // Direction of the wall we're clinging to (-1 for left wall, 1 for right wall)
     private float wallKickOffTimer = 0f; // Timer for wall kick-off duration
 
@@ -54,6 +56,8 @@ public class PlayerController_pif : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         playerInput = GetComponent<PlayerInput>();
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         moveAction = playerInput.actions["Move"];
         verticalAction = playerInput.actions["Vertical"]; // Assuming you have a "Vertical" action
         jumpAction = playerInput.actions["Jump"];
@@ -196,6 +200,16 @@ public class PlayerController_pif : MonoBehaviour
                 isWallKickingOff = false;
                 wallDirection = 0; // Reset wall direction when kick-off ends
             }
+        }
+
+        // Handle Sprite Flipping based on velocity
+        if (rb.linearVelocity.x > 0)
+        {
+            spriteRenderer.flipX = false;
+        }
+        else if (rb.linearVelocity.x < 0)
+        {
+            spriteRenderer.flipX = true;
         }
     }
     

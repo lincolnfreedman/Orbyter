@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4318865354483485339}
   - component: {fileID: 9044056499424679122}
   - component: {fileID: 5072675042849662806}
-  - component: {fileID: 3199833777599788357}
+  - component: {fileID: 8269349131244181039}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.29, y: 7.21, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
+  m_LocalScale: {x: 0.25, y: 0.25, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -103,15 +103,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b47405dd9b7e065479d4345cbeb0f533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 12
-  jumpForce: 20
-  jumpBufferTime: 0.2
+  moveSpeed: 14
+  jumpForce: 15
+  jumpBufferTime: 0.1
   maxJumpTime: 0.4
   jumpReleaseMultiplier: 0.5
-  glideGravityReduction: 0.7
-  glideAcceleration: 3
-  maxGlideSpeed: 8
-  wallClingGravityReduction: 0.1
+  coyoteTime: 0.15
+  glideAcceleration: 48
+  maxGlideSpeed: 24
+  gravityWhileJumping: 2.5
+  gravityWhileFalling: 4
+  gravityWhileGliding: 0.25
+  gravityWhileFastFalling: 15
+  terminalVelocity: -25
+  wallKickOffDuration: 0.3
+  sprayForce: 10
+  sprayCooldown: 1
+  sprayDuration: 0.35
+  facingDirection: 1
 --- !u!50 &9044056499424679122
 Rigidbody2D:
   serializedVersion: 5
@@ -127,7 +136,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 2.5
+  m_GravityScale: 3.25
   m_Material: {fileID: 6200000, guid: 15a7024c8cf45f647bc47d54d0cc3221, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
@@ -169,8 +178,8 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!70 &3199833777599788357
-CapsuleCollider2D:
+--- !u!61 &8269349131244181039
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -179,7 +188,7 @@ CapsuleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 15a7024c8cf45f647bc47d54d0cc3221, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -204,5 +213,14 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 4.17, y: 5.62}
-  m_Direction: 0
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 12.8, y: 12.8}
+    newSize: {x: 4.17, y: 5.62}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 2.78, y: 3.7466667}
+  m_EdgeRadius: 0
