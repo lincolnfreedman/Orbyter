@@ -395,7 +395,7 @@
                 {
                     "name": "positive",
                     "id": "b680e6ae-0d69-4d1a-98b3-3e09d5a98503",
-                    "path": "<Keyboard>/upArrow",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

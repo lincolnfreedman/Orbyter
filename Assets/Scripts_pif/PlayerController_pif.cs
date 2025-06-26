@@ -11,15 +11,16 @@ public class PlayerController_pif : MonoBehaviour
     public float coyoteTime = 0.15f; // Time window after leaving ground where player can still jump
     public float glideAcceleration = 3f; // How fast horizontal speed builds up while gliding
     public float maxGlideSpeed = 8f; // Maximum horizontal speed while gliding
+    public float glideVelocityMultiplier = 0.6f; // How much downward velocity is reduced when starting to glide
     public float gravityWhileJumping = 1f; // Gravity scale while jumping and moving upward
     public float gravityWhileFalling = 2f; // Gravity scale while falling
     public float gravityWhileGliding = 0.5f; // Gravity scale while gliding
-    public float gravityWhileFastFalling = 4f; // Gravity scale while fast falling
     public float terminalVelocity = -10f; // Maximum downward velocity (negative value)
     public float wallKickOffDuration = 0.5f; // How long the wall kick-off force is applied
     public float sprayForce = 15f; // Force applied during spray/dash
     public float sprayCooldown = 1f; // Cooldown time between sprays
     public float sprayDuration = 0.1f; // How long the spray state lasts
+    public float fastFallVelocity = 8f; // Velocity added/removed for fast falling
     private Rigidbody2D rb;
     private bool isGrounded;
     private bool isJumping = false; // Track if player is currently in a jump
@@ -91,6 +92,13 @@ public class PlayerController_pif : MonoBehaviour
             // Only reset coyote timer if we just landed (transition from air to ground)
             if (!wasGroundedLastFrame)
             {
+                // Cancel fast fall if active when landing
+                if (isFastFalling)
+                {
+                    isFastFalling = false;
+                    // Don't add upward velocity when landing as it would interfere with ground contact
+                }
+                
                 coyoteTimer = coyoteTime; // Reset coyote timer when landing
                 leftGroundByJumping = false; // Reset jump flag when landing
                 sprayUsedThisJump = false; // Reset spray availability when landing
@@ -236,10 +244,6 @@ public class PlayerController_pif : MonoBehaviour
         {
             rb.gravityScale = gravityWhileJumping;
         }
-        else if (isFastFalling)
-        {
-            rb.gravityScale = gravityWhileFastFalling;
-        }
         else
         {
             rb.gravityScale = gravityWhileFalling;
@@ -251,11 +255,23 @@ public class PlayerController_pif : MonoBehaviour
         // Check if fastfall button is pressed and we're in the air (but not jumping, gliding, or wall clinging)
         if (fastFallAction.IsPressed() && !isGrounded && !isJumping && !isGliding && !isWallClinging && rb.linearVelocity.y < 0)
         {
-            isFastFalling = true;
+            // Start fast falling if not already fast falling
+            if (!isFastFalling)
+            {
+                isFastFalling = true;
+                // Add downward velocity
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y - fastFallVelocity);
+            }
         }
         else
         {
-            isFastFalling = false;
+            // Stop fast falling if currently fast falling
+            if (isFastFalling)
+            {
+                isFastFalling = false;
+                // Add upward velocity to counter the fast fall
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
+            }
         }
     }
     
@@ -278,7 +294,7 @@ public class PlayerController_pif : MonoBehaviour
             Vector2 sprayDirection = GetSprayDirection(sprayInput);
             
             // Add spray velocity instead of setting it
-            rb.linearVelocity += sprayDirection * sprayForce;
+            rb.linearVelocity = sprayDirection * sprayForce;
             
             // Start spray duration and mark as used
             sprayTimer = sprayDuration;
@@ -375,6 +391,14 @@ public class PlayerController_pif : MonoBehaviour
             // Only start wall clinging if we have negative velocity (falling), but continue if already clinging
             if (!isWallClinging && rb.linearVelocity.y < 0)
             {
+                // Cancel fast fall if active before wall clinging
+                if (isFastFalling)
+                {
+                    isFastFalling = false;
+                    // Add upward velocity to counter the fast fall
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
+                }
+                
                 // Start wall clinging (only when falling)
                 isWallClinging = true;
                 isJumping = false; // End any current jump
@@ -488,10 +512,24 @@ public class PlayerController_pif : MonoBehaviour
         {
             if (!isGliding)
             {
+                // Cancel fast fall if active before gliding
+                if (isFastFalling)
+                {
+                    isFastFalling = false;
+                    // Add upward velocity to counter the fast fall
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
+                }
+                
                 // Start gliding
                 isGliding = true;
                 isJumping = false; // End any current jump
                 glideTimer = 0f; // Reset glide timer
+                
+                // Reduce downward velocity when starting to glide
+                if (rb.linearVelocity.y < 0)
+                {
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * glideVelocityMultiplier);
+                }
                 
                 // If no direction is held, set base speed in facing direction
                 if (moveInput.x == 0)
@@ -551,9 +589,16 @@ public class PlayerController_pif : MonoBehaviour
         }
         else if (isWallKickingOff)
         {
-            // During wall kick-off, maintain horizontal velocity away from wall
-            // Override any input for the kick-off duration
-            rb.linearVelocity = new Vector2(-wallDirection * moveSpeed, rb.linearVelocity.y);
+            // During wall kick-off, gradually decelerate horizontal velocity from initial kickoff speed to 0
+            // Calculate how much time has passed since the wall kick-off started
+            float timeElapsed = wallKickOffDuration - wallKickOffTimer;
+            float progress = timeElapsed / wallKickOffDuration; // 0 at start, 1 at end
+            
+            // Interpolate from initial kickoff velocity to 0
+            float currentHorizontalVelocity = Mathf.Lerp(moveSpeed, 0f, progress);
+            
+            // Apply the decelerated velocity in the wall kick-off direction
+            rb.linearVelocity = new Vector2(-wallDirection * currentHorizontalVelocity, rb.linearVelocity.y);
         }
         else if (isGliding)
         {
@@ -587,6 +632,13 @@ public class PlayerController_pif : MonoBehaviour
         }
     }    private void OnCollisionEnter2D(Collision2D collision)
     {
+        // Check for damaging objects first
+        if (collision.gameObject.CompareTag("Damaging"))
+        {
+            Die();
+            return; // Exit early to prevent other collision logic
+        }
+        
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Climbable"))
         {
             CheckGroundContact(collision);
@@ -595,6 +647,13 @@ public class PlayerController_pif : MonoBehaviour
 
     private void OnCollisionStay2D(Collision2D collision)
     {
+        // Check for damaging objects first
+        if (collision.gameObject.CompareTag("Damaging"))
+        {
+            Die();
+            return; // Exit early to prevent other collision logic
+        }
+        
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Climbable"))
         {
             CheckGroundContact(collision);
@@ -607,6 +666,24 @@ public class PlayerController_pif : MonoBehaviour
         {
             // Check if we're still touching any ground after this collision ends
             isGrounded = IsStandingOnSurface();
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        // Check for damaging objects
+        if (other.CompareTag("Damaging"))
+        {
+            Die();
+        }
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        // Check for damaging objects
+        if (other.CompareTag("Damaging"))
+        {
+            Die();
         }
     }
 
@@ -659,5 +736,44 @@ public class PlayerController_pif : MonoBehaviour
     private bool IsUpwardFacing(Vector2 normal)
     {
         return normal.y > 0.7f; // 0.7 allows for slightly sloped surfaces
+    }
+
+    private void Die()
+    {
+        // Reset position to origin
+        transform.position = Vector3.zero;
+        
+        // Reset velocity
+        rb.linearVelocity = Vector2.zero;
+        
+        // Reset all movement states
+        isGrounded = false;
+        isJumping = false;
+        isGliding = false;
+        isWallClinging = false;
+        isFastFalling = false;
+        isWallKickingOff = false;
+        isSpraying = false;
+        
+        // Reset movement timers and counters
+        glideTimer = 0f;
+        currentGlideSpeed = 0f;
+        jumpTimeCounter = 0f;
+        jumpBufferTimer = 0f;
+        coyoteTimer = 0f;
+        sprayTimer = 0f;
+        wallKickOffTimer = 0f;
+        
+        // Reset movement flags
+        leftGroundByJumping = false;
+        wasGroundedLastFrame = false;
+        sprayUsedThisJump = false;
+        
+        // Reset direction and wall states
+        facingDirection = 1; // Reset to facing right
+        wallDirection = 0;
+        
+        // Reset gravity scale to default
+        rb.gravityScale = gravityWhileFalling;
     }
 }
