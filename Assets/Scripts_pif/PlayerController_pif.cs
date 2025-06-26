@@ -1,3 +1,5 @@
+using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -40,6 +42,7 @@ public class PlayerController_pif : MonoBehaviour
     private float sprayCooldownTimer = 0f; // Track spray cooldown
     private float sprayTimer = 0f; // Track how long we've been spraying
     private bool sprayUsedThisJump = false; // Track if spray has been used since last grounding/wall cling
+    private bool footstepPlayed = false;
     private PlayerInput playerInput;
     private InputAction moveAction;
     private InputAction verticalAction; // For up/down input detection
@@ -49,6 +52,7 @@ public class PlayerController_pif : MonoBehaviour
     private InputAction sprayAction;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
+    private Player_pip player;
     private int wallDirection = 0; // Direction of the wall we're clinging to (-1 for left wall, 1 for right wall)
     private float wallKickOffTimer = 0f; // Timer for wall kick-off duration
 
@@ -59,6 +63,7 @@ public class PlayerController_pif : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        player = GetComponent<Player_pip>();
         moveAction = playerInput.actions["Move"];
         verticalAction = playerInput.actions["Vertical"]; // Assuming you have a "Vertical" action
         jumpAction = playerInput.actions["Jump"];
@@ -76,6 +81,7 @@ public class PlayerController_pif : MonoBehaviour
         if (jumpAction.triggered)
         {
             jumpBufferTimer = jumpBufferTime; // Start the buffer timer
+            player.PlayerSFX(1);
         }
 
         // Decrease buffer timer
@@ -217,6 +223,9 @@ public class PlayerController_pif : MonoBehaviour
         {
             spriteRenderer.flipX = true;
         }
+
+        // Handle Animations
+        HandleAnimations();
 
         if (transform.position.y < -30)
         {
@@ -408,6 +417,8 @@ public class PlayerController_pif : MonoBehaviour
                 isGliding = false; // End any current glide
                 wallDirection = GetWallDirection(); // Store which side the wall is on
                 sprayUsedThisJump = false; // Reset spray availability when wall clinging
+
+                player.PlayerSFX(2);
             }
             
             // If we're wall clinging (either just started or continuing), maintain it
@@ -632,8 +643,23 @@ public class PlayerController_pif : MonoBehaviour
                 facingDirection = -1; // Facing left
             }
             // If moveInput.x == 0, maintain current facing direction
+
+            if (!footstepPlayed && Mathf.Abs(rb.linearVelocity.x) > 0 && isGrounded)
+            {
+                StartCoroutine(FootstepSFX());
+            }
         }
-    }    private void OnCollisionEnter2D(Collision2D collision)
+    }
+
+    private IEnumerator FootstepSFX()
+    {
+        footstepPlayed = true;
+        player.PlayerSFX(0);
+        yield return new WaitForSeconds(0.5f);
+        footstepPlayed = false;
+    }
+    
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         // Check for damaging objects first
         if (collision.gameObject.CompareTag("Damaging"))
@@ -778,5 +804,14 @@ public class PlayerController_pif : MonoBehaviour
         
         // Reset gravity scale to default
         rb.gravityScale = gravityWhileFalling;
+    }
+
+    private void HandleAnimations()
+    {
+        animator.SetFloat("Velocity", Mathf.Abs(rb.linearVelocity.x));
+        animator.SetBool("isGrounded", isGrounded);
+        animator.SetBool("isGliding", isGliding);
+        animator.SetBool("isJumping", isJumping);
+        animator.SetBool("isWallClinging", isWallClinging);
     }
 }
