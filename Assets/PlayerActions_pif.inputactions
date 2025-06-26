@@ -29,7 +29,7 @@
                     "id": "a098af96-9c89-4130-9b26-aaee07da6fc4",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Hold",
                     "initialStateCheck": false
                 },
                 {
@@ -74,7 +74,7 @@
                     "id": "d1822335-13f2-4ee4-9ce5-cdb7513ba9a5",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Hold(duration=1)",
                     "initialStateCheck": false
                 },
                 {
@@ -111,7 +111,7 @@
                     "id": "0cd165bd-1398-48c4-9840-a321369d26bb",
                     "path": "2DVector",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "StickDeadzone",
                     "groups": "",
                     "action": "Move",
                     "isComposite": true,
@@ -219,7 +219,7 @@
                 {
                     "name": "",
                     "id": "76f90b52-3756-4772-8979-127254cb4fda",
-                    "path": "<Keyboard>/c",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
@@ -231,7 +231,7 @@
                     "name": "",
                     "id": "9877ee7a-9288-48a5-b0c0-f45fed92a2d5",
                     "path": "<Gamepad>/buttonSouth",
-                    "interactions": "Hold",
+                    "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "Glide",
@@ -319,7 +319,7 @@
                     "name": "",
                     "id": "b5fcb0d1-76df-4929-b66e-14b14e0c73fb",
                     "path": "<Gamepad>/buttonNorth",
-                    "interactions": "Hold(duration=1)",
+                    "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "WideScan",
@@ -330,7 +330,7 @@
                     "name": "",
                     "id": "58724a08-851f-4c8b-bbbe-a92141a4d54b",
                     "path": "<Keyboard>/c",
-                    "interactions": "Hold(duration=1)",
+                    "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "WideScan",
