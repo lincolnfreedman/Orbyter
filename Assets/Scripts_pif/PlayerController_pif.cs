@@ -1,10 +1,17 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 
 public class PlayerController_pif : MonoBehaviour
 {
+    public BoxCollider2D normalCollider;
+    public BoxCollider2D glidingCollider;
+    [SerializeField] private LayerMask diggableLayer = 1 << 8; // Layer mask for climbable objects (default to layer 8 - "Climbable")
+    // Note: Make sure all climbable objects (tiles, walls, etc.) are on the same layer for dig phasing to work correctly
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
     public float jumpBufferTime = 0.2f; // Time window to buffer jump input (in seconds)
@@ -23,6 +30,11 @@ public class PlayerController_pif : MonoBehaviour
     public float sprayCooldown = 1f; // Cooldown time between sprays
     public float sprayDuration = 0.1f; // How long the spray state lasts
     public float fastFallVelocity = 8f; // Velocity added/removed for fast falling
+    public float digForce = 12f; // Force applied during dig dash
+    public float digDuration = 0.3f; // How long the dig dash lasts
+    public float digCooldown = 1f; // Cooldown time between digs
+    public float digAcceleration = 25f; // Acceleration for directional movement during dig phasing
+    public float maxDigVelocity = 12f; // Maximum velocity during dig phasing
     private Rigidbody2D rb;
     private bool isGrounded;
     private bool isJumping = false; // Track if player is currently in a jump
@@ -31,6 +43,8 @@ public class PlayerController_pif : MonoBehaviour
     private bool isFastFalling = false; // Track if player is currently fast falling
     private bool isWallKickingOff = false; // Track if player is currently kicking off a wall
     private bool isSpraying = false; // Track if player is currently spraying/dashing
+    private bool isDigging = false; // Track if player is currently digging/dashing
+    private bool isDigPhasing = false; // Track if player is phasing through climbable objects during dig
     public int facingDirection = 1; // 1 for right, -1 for left
     private float glideTimer = 0f; // Track how long we've been gliding
     private float currentGlideSpeed = 0f; // Current horizontal glide speed
@@ -42,6 +56,9 @@ public class PlayerController_pif : MonoBehaviour
     private float sprayCooldownTimer = 0f; // Track spray cooldown
     private float sprayTimer = 0f; // Track how long we've been spraying
     private bool sprayUsedThisJump = false; // Track if spray has been used since last grounding/wall cling
+    private float digCooldownTimer = 0f; // Track dig cooldown
+    private float digTimer = 0f; // Track how long we've been digging
+    private bool digUsedThisJump = false; // Track if dig has been used since last grounding/wall cling
     private bool footstepPlayed = false;
     private PlayerInput playerInput;
     private InputAction moveAction;
@@ -50,6 +67,7 @@ public class PlayerController_pif : MonoBehaviour
     private InputAction glideAction;    
     private InputAction fastFallAction;
     private InputAction sprayAction;
+    private InputAction digAction;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private Player_pip player;
@@ -65,11 +83,15 @@ public class PlayerController_pif : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         player = GetComponent<Player_pip>();
         moveAction = playerInput.actions["Move"];
-        verticalAction = playerInput.actions["Vertical"]; // Assuming you have a "Vertical" action
+        verticalAction = playerInput.actions["Vertical"];
         jumpAction = playerInput.actions["Jump"];
         glideAction = playerInput.actions["Glide"]; 
         fastFallAction = playerInput.actions["FastFall"]; 
         sprayAction = playerInput.actions["Spray"]; 
+        digAction = playerInput.actions["Dig"]; 
+
+        // Validate layer setup
+        ValidateLayerSetup();
     }
 
     // Update is called once per frame
@@ -106,6 +128,7 @@ public class PlayerController_pif : MonoBehaviour
                 coyoteTimer = coyoteTime; // Reset coyote timer when landing
                 leftGroundByJumping = false; // Reset jump flag when landing
                 sprayUsedThisJump = false; // Reset spray availability when landing
+                digUsedThisJump = false; // Reset dig availability when landing
             }
         }
         else
@@ -146,10 +169,12 @@ public class PlayerController_pif : MonoBehaviour
 
         HandleSpray(moveInput);
 
+        HandleDig(moveInput);
+
         //(modified by gliding and wall cling state)
         HandleHorizontalMovement(moveInput);
         // Handle variable jump height
-        if (isJumping && !isGliding && !isWallClinging) // Don't allow variable jump while gliding or wall clinging (but allow during wall kick-off)
+        if (isJumping && !isGliding && !isWallClinging && !isDigging) // Don't allow variable jump while gliding, wall clinging, or digging (but allow during wall kick-off)
         {
             // If jump button is still held and we haven't exceeded max jump time
             if (jumpAction.IsPressed() && jumpTimeCounter < maxJumpTime)
@@ -172,7 +197,7 @@ public class PlayerController_pif : MonoBehaviour
             else
             {
                 // Jump button released or max time reached - end variable jump
-                if (!jumpAction.IsPressed() && rb.linearVelocity.y > 0)
+                if (!jumpAction.IsPressed() && rb.linearVelocity.y > 0 && !isSpraying)
                 {
                     // Reduce upward velocity when jump is released early
                     float newVerticalVelocity = rb.linearVelocity.y * jumpReleaseMultiplier;
@@ -226,11 +251,6 @@ public class PlayerController_pif : MonoBehaviour
 
         // Handle Animations
         HandleAnimations();
-
-        if (transform.position.y < -30)
-        {
-            Die();
-        }
     }
     
     private void ApplyTerminalVelocity()
@@ -244,7 +264,15 @@ public class PlayerController_pif : MonoBehaviour
     
     private void UpdateGravity()
     {
-        if (isWallClinging)
+        if (isDigging)
+        {
+            rb.gravityScale = 0f; // No gravity while digging
+        }
+        else if (isDigPhasing)
+        {
+            rb.gravityScale = 0f; // No gravity while phasing through walls (even after dig ends)
+        }
+        else if (isWallClinging)
         {
             rb.gravityScale = 0f; // No gravity while wall clinging
         }
@@ -264,8 +292,8 @@ public class PlayerController_pif : MonoBehaviour
     
     private void HandleFastFalling()
     {
-        // Check if fastfall button is pressed and we're in the air (but not jumping, gliding, or wall clinging)
-        if (fastFallAction.IsPressed() && !isGrounded && !isJumping && !isGliding && !isWallClinging && rb.linearVelocity.y < 0)
+        // Check if fastfall button is pressed and we're in the air (but not jumping, gliding, digging, or wall clinging)
+        if (fastFallAction.IsPressed() && !isGrounded && !isJumping && !isGliding && !isDigging)
         {
             // Start fast falling if not already fast falling
             if (!isFastFalling)
@@ -289,8 +317,8 @@ public class PlayerController_pif : MonoBehaviour
     
     private void HandleSpray(Vector2 moveInput)
     {
-        // Check if spray button is pressed and spray hasn't been used this jump
-        if (sprayAction.triggered && !sprayUsedThisJump)
+        // Check if spray button is pressed and spray hasn't been used this jump and not digging
+        if (sprayAction.triggered && !sprayUsedThisJump && !isDigging)
         {
             // Get separate horizontal and vertical inputs for spray direction
             float horizontal = moveAction.ReadValue<Vector2>().x;
@@ -304,10 +332,9 @@ public class PlayerController_pif : MonoBehaviour
             
             // Determine spray direction based on input priority
             Vector2 sprayDirection = GetSprayDirection(sprayInput);
-            
-            // Add spray velocity instead of setting it
-            rb.linearVelocity = sprayDirection * sprayForce;
-            
+
+            rb.AddForce(sprayDirection * sprayForce, ForceMode2D.Impulse);
+
             // Start spray duration and mark as used
             sprayTimer = sprayDuration;
             sprayUsedThisJump = true;
@@ -318,9 +345,8 @@ public class PlayerController_pif : MonoBehaviour
             // End gliding if currently gliding
             if (isGliding)
             {
-                isGliding = false;
-                glideTimer = 0f;
-                currentGlideSpeed = 0f;
+                DeactivateGlide();
+                
             }
             
             // Only end wall clinging if currently wall clinging
@@ -338,8 +364,146 @@ public class PlayerController_pif : MonoBehaviour
             if (sprayTimer <= 0f)
             {
                 isSpraying = false;
+                Debug.Log("spray ended");
             }
         }
+    }
+    
+    private void HandleDig(Vector2 moveInput)
+    {
+        // Update dig cooldown timer
+        if (digCooldownTimer > 0f)
+        {
+            digCooldownTimer -= Time.deltaTime;
+        }
+        
+        // Check if dig button is pressed and not currently spraying and dig hasn't been used this jump and cooldown is ready
+        if (digAction.triggered && !isSpraying && !digUsedThisJump && digCooldownTimer <= 0f)
+        {
+            SetDiggableCollisionEnabled(false);
+            // Get separate horizontal and vertical inputs for dig direction
+            float horizontal = moveAction.ReadValue<Vector2>().x;
+            float vertical = verticalAction.ReadValue<float>();
+            
+            // Create combined input vector for dig
+            Vector2 digInput = new Vector2(horizontal, vertical);
+            
+            // Determine dig direction based on input
+            Vector2 digDirection = GetDigDirection(digInput);
+            
+            // Set dig velocity
+            rb.linearVelocity = digDirection * digForce;
+            
+            // Start dig duration and cooldown
+            digTimer = digDuration;
+            digCooldownTimer = digCooldown;
+            digUsedThisJump = true; // Mark dig as used this jump
+            
+            // Set dig state
+            isDigging = true;
+            
+            // Cancel all other movement states
+            if (isJumping)
+            {
+                isJumping = false;
+            }
+            
+            if (isFastFalling)
+            {
+                isFastFalling = false;
+            }
+            
+            if (isWallClinging)
+            {
+                isWallClinging = false;
+                wallDirection = 0;
+            }
+            
+            if (isGliding)
+            {
+                DeactivateGlide();
+               
+            }
+        }
+        
+        // Update dig timer and phasing
+        if (isDigging)
+        {
+            // Check if we're touching a climbable object during dig
+            bool touchingClimbable = IsTouchingDiggableWall();
+            
+            if (touchingClimbable && !isDigPhasing)
+            {
+                // Start phasing - ignore collision with climbable objects
+                isDigPhasing = true;
+            }
+            else if (!touchingClimbable && isDigPhasing)
+            {
+                // No longer touching climbable objects, end phasing
+                isDigPhasing = false;
+            }
+            
+            // Only end dig if timer expires AND not phasing
+            if (!isDigPhasing)
+            {
+                digTimer -= Time.deltaTime;
+                if (digTimer <= 0f)
+                {
+                    isDigging = false;
+                    SetDiggableCollisionEnabled(true);
+                }
+            }
+            // If phasing, don't decrease timer - keep digging state active
+        }
+        else if (isDigPhasing)
+        {
+            // Handle phasing state even when not digging (e.g., when dig timer expired while inside wall)
+            bool touchingClimbable = IsTouchingDiggableWall();
+            
+            if (!touchingClimbable)
+            {
+                isDigPhasing = false;
+            }
+        }
+    }
+    
+    private Vector2 GetDigDirection(Vector2 digInput)
+    {
+        // Use a threshold to account for input sensitivity
+        float inputThreshold = 0.1f;
+        
+        // Get normalized input for 8-directional movement
+        bool hasHorizontal = Mathf.Abs(digInput.x) > inputThreshold;
+        bool hasVertical = Mathf.Abs(digInput.y) > inputThreshold;
+        
+        // If grounded, prevent downward digging (down, down-left, down-right)
+        if (isGrounded && hasVertical && digInput.y < 0)
+        {
+            // Default to facing direction instead
+            return new Vector2(facingDirection, 0f);
+        }
+        
+        // Handle 8-directional input
+        if (hasHorizontal && hasVertical)
+        {
+            // Diagonal directions (normalize to ensure consistent speed)
+            float x = digInput.x > 0 ? 1f : -1f;
+            float y = digInput.y > 0 ? 1f : -1f;
+            return new Vector2(x, y).normalized;
+        }
+        else if (hasHorizontal)
+        {
+            // Horizontal only
+            return new Vector2(digInput.x > 0 ? 1f : -1f, 0f);
+        }
+        else if (hasVertical)
+        {
+            // Vertical only
+            return new Vector2(0f, digInput.y > 0 ? 1f : -1f);
+        }
+        
+        // No input - use facing direction
+        return new Vector2(facingDirection, 0f);
     }
     
     private Vector2 GetSprayDirection(Vector2 sprayInput)
@@ -347,8 +511,12 @@ public class PlayerController_pif : MonoBehaviour
         // Priority: Horizontal (left/right) > Down > Up > Facing direction (no input)
         // Use a threshold to account for input sensitivity
         float inputThreshold = 0.1f;
-        
-        Debug.Log($"GetSprayDirection - X: {sprayInput.x}, Y: {sprayInput.y}");
+
+        if (Mathf.Abs(sprayInput.y) > inputThreshold && sprayInput.y > 0)
+        {
+            return new Vector2(0f, 1f); // Up
+        }
+            
         
         // Check for horizontal input first (highest priority)
         if (Mathf.Abs(sprayInput.x) > inputThreshold)
@@ -359,19 +527,9 @@ public class PlayerController_pif : MonoBehaviour
         }
         
         // Check for vertical input
-        if (Mathf.Abs(sprayInput.y) > inputThreshold)
+        if (Mathf.Abs(sprayInput.y) > inputThreshold && sprayInput.y < 0)
         {
-            // Down has higher priority than up
-            if (sprayInput.y < 0)
-            {
-                Debug.Log("Spray Direction: Down");
-                return new Vector2(0f, -1f); // Down
-            }
-            else
-            {
-                Debug.Log("Spray Direction: Up");
-                return new Vector2(0f, 1f); // Up
-            }
+            return new Vector2(0f, -1f); // Down
         }
         
         // No input - use facing direction
@@ -382,13 +540,12 @@ public class PlayerController_pif : MonoBehaviour
     
     private void HandleWallClinging(Vector2 moveInput)
     {
-        // Update isGrounded with the more reliable check
         isGrounded = IsStandingOnSurface();
         
-        // Don't allow wall clinging if currently wall kicking off or if grounded
-        if (isWallKickingOff || isGrounded)
+        // Don't allow wall clinging if currently wall kicking off, if grounded, if fast falling, or if digging
+        if (isWallKickingOff || isGrounded || isFastFalling || isDigging)
         {
-            // If we were wall clinging and now we're grounded, stop clinging
+            // If we were wall clinging and now we're grounded, fast falling, or digging, stop clinging
             if (isWallClinging)
             {
                 isWallClinging = false;
@@ -398,7 +555,7 @@ public class PlayerController_pif : MonoBehaviour
         }
         
         // Check if we're in the air and touching a climbable wall
-        if (IsTouchingClimbableWall())
+        if (IsTouchingClimbableWall() && !isFastFalling)
         {
             // Only start wall clinging if we have negative velocity (falling), but continue if already clinging
             if (!isWallClinging && rb.linearVelocity.y < 0)
@@ -414,9 +571,10 @@ public class PlayerController_pif : MonoBehaviour
                 // Start wall clinging (only when falling)
                 isWallClinging = true;
                 isJumping = false; // End any current jump
-                isGliding = false; // End any current glide
+                DeactivateGlide();
                 wallDirection = GetWallDirection(); // Store which side the wall is on
                 sprayUsedThisJump = false; // Reset spray availability when wall clinging
+                digUsedThisJump = false; // Reset dig availability when wall clinging
 
                 player.PlayerSFX(2);
             }
@@ -494,9 +652,26 @@ public class PlayerController_pif : MonoBehaviour
             {
                 return true;
             }
-        }
-        
+        }  
         return false;
+    }
+    private bool IsTouchingDiggableWall()
+    {
+        // Use layer-based detection for climbable objects
+        // Get the currently active collider (normal or gliding)
+        Collider2D activeCollider = normalCollider.enabled ? normalCollider : glidingCollider;
+        
+        // Create a contact filter for the climbable layer
+        ContactFilter2D contactFilter = new ContactFilter2D();
+        contactFilter.SetLayerMask(diggableLayer);
+        contactFilter.useLayerMask = true;
+        contactFilter.useTriggers = true; // Include triggers in overlap check
+        
+        // Check for overlap with any colliders on the climbable layer
+        List<Collider2D> overlappingColliders = new List<Collider2D>();
+        int overlapCount = activeCollider.Overlap(contactFilter, overlappingColliders);
+        
+        return overlapCount > 0;
     }
     
     private int GetWallDirection()
@@ -504,7 +679,7 @@ public class PlayerController_pif : MonoBehaviour
         // Get all current collisions
         ContactPoint2D[] contacts = new ContactPoint2D[10];
         int contactCount = rb.GetContacts(contacts);
-        
+
         for (int i = 0; i < contactCount; i++)
         {
             // Check if touching a climbable wall (vertical surface)
@@ -516,13 +691,13 @@ public class PlayerController_pif : MonoBehaviour
                 return contacts[i].normal.x > 0 ? -1 : 1;
             }
         }
-        
+
         return 0; // No wall found
     }
         private void HandleGliding(Vector2 moveInput)
     {
-        // Check if glide button is pressed and we're in the air (but not wall clinging)
-        if (glideAction.IsPressed() && !isGrounded && !isWallClinging && rb.linearVelocity.y < 0) // Only glide when falling and not wall clinging
+        // Check if glide button is pressed and we're in the air (but not wall clinging or digging)
+        if (glideAction.IsPressed() && !isGrounded && !isWallClinging && !isDigging && rb.linearVelocity.y < 0) // Only glide when falling and not wall clinging or digging
         {
             if (!isGliding)
             {
@@ -533,10 +708,12 @@ public class PlayerController_pif : MonoBehaviour
                     // Add upward velocity to counter the fast fall
                     rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
                 }
-                
+
                 // Start gliding
+                glidingCollider.enabled = true; // Enable gliding collider
+                normalCollider.enabled = false; // Disable normal collider
                 isGliding = true;
-                isJumping = false; // End any current jump
+                isJumping = false;
                 glideTimer = 0f; // Reset glide timer
                 
                 // Reduce downward velocity when starting to glide
@@ -588,9 +765,8 @@ public class PlayerController_pif : MonoBehaviour
             if (isGliding)
             {
                 // Stop gliding
-                isGliding = false;
-                glideTimer = 0f;
-                currentGlideSpeed = 0f;
+                DeactivateGlide();
+             
             }
         }
     }
@@ -609,15 +785,66 @@ public class PlayerController_pif : MonoBehaviour
             float progress = timeElapsed / wallKickOffDuration; // 0 at start, 1 at end
             
             // Interpolate from initial kickoff velocity to 0
-            float currentHorizontalVelocity = Mathf.Lerp(moveSpeed, 0f, progress);
+            //float currentHorizontalVelocity = Mathf.Lerp(moveSpeed, 0f, progress);
             
             // Apply the decelerated velocity in the wall kick-off direction
-            rb.linearVelocity = new Vector2(-wallDirection * currentHorizontalVelocity, rb.linearVelocity.y);
+            rb.linearVelocity = new Vector2(-wallDirection * moveSpeed, rb.linearVelocity.y);
         }
         else if (isGliding)
         {
             // Gliding movement is handled in HandleGliding method
             // No additional horizontal movement processing needed here
+        }
+        else if (isDigging)
+        {
+            // Check if we're in dig phasing mode for 8-directional movement
+            if (isDigPhasing)
+            {
+                // 8-directional acceleration-based movement during dig phasing
+                float horizontal = moveInput.x;
+                float vertical = verticalAction.ReadValue<float>();
+                
+                // Create input direction vector
+                Vector2 inputDirection = new Vector2(horizontal, vertical);
+                
+                // Get current velocity
+                Vector2 currentVelocity = rb.linearVelocity;
+                
+                // If there's any input, apply acceleration in that direction
+                if (inputDirection.magnitude > 0.1f)
+                {
+                    // Normalize input for consistent acceleration
+                    inputDirection = inputDirection.normalized;
+                    
+                    // Apply acceleration in the input direction
+                    Vector2 acceleration = inputDirection * digAcceleration * Time.deltaTime;
+                    Vector2 newVelocity = currentVelocity + acceleration;
+                    
+                    // Clamp to maximum dig velocity
+                    if (newVelocity.magnitude > maxDigVelocity)
+                    {
+                        newVelocity = newVelocity.normalized * maxDigVelocity;
+                    }
+                    
+                    rb.linearVelocity = newVelocity;
+                    
+                    // Update facing direction based on horizontal input
+                    if (Mathf.Abs(horizontal) > 0.1f)
+                    {
+                        facingDirection = horizontal > 0 ? 1 : -1;
+                    }
+                }
+                // No deceleration when no input - preserve momentum
+            }
+            else
+            {
+                // Normal dig behavior - don't override velocity during dig - let the dig momentum carry
+                // Still update facing direction based on current velocity if significant
+                if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)
+                {
+                    facingDirection = rb.linearVelocity.x > 0 ? 1 : -1;
+                }
+            }
         }
         else if (isSpraying)
         {
@@ -670,7 +897,7 @@ public class PlayerController_pif : MonoBehaviour
         
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Climbable"))
         {
-            CheckGroundContact(collision);
+            isGrounded = IsStandingOnSurface();
         }
     }
 
@@ -685,7 +912,7 @@ public class PlayerController_pif : MonoBehaviour
         
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Climbable"))
         {
-            CheckGroundContact(collision);
+            isGrounded = IsStandingOnSurface();
         }
     }
 
@@ -715,27 +942,23 @@ public class PlayerController_pif : MonoBehaviour
             Die();
         }
     }
-
-    private void CheckGroundContact(Collision2D collision)
+    private void DeactivateGlide()
     {
-        // Check if any contact point has a normal pointing upward (player is on top)
-        foreach (ContactPoint2D contact in collision.contacts)
-        {
-            // Normal pointing up means the surface is below the player
-            // We use a threshold (0.7) to allow for slightly sloped surfaces
-            if (contact.normal.y > 0.7f)
-            {
-                isGrounded = true;
-                return;
-            }
-        }
-        
-        // If no upward-facing normals found, player is not grounded
-        isGrounded = false;
+        glideTimer = 0f;
+        currentGlideSpeed = 0f;
+        glidingCollider.enabled = false; // Disable gliding collider
+        normalCollider.enabled = true; // Enable normal collider
+        isGliding = false; // Set gliding state to false
     }
 
     private bool IsStandingOnSurface()
     {
+        // Don't consider grounded during dig phasing
+        if (isDigPhasing)
+        {
+            return false;
+        }
+        
         return HasContactWithNormal(contact => IsGroundSurface(contact.collider) && IsUpwardFacing(contact.normal));
     }
 
@@ -778,25 +1001,28 @@ public class PlayerController_pif : MonoBehaviour
         // Reset all movement states
         isGrounded = false;
         isJumping = false;
-        isGliding = false;
+        DeactivateGlide(); // Ensure glide is deactivated
         isWallClinging = false;
         isFastFalling = false;
         isWallKickingOff = false;
         isSpraying = false;
+        isDigging = false;
+        isDigPhasing = false;
         
         // Reset movement timers and counters
-        glideTimer = 0f;
-        currentGlideSpeed = 0f;
         jumpTimeCounter = 0f;
         jumpBufferTimer = 0f;
         coyoteTimer = 0f;
         sprayTimer = 0f;
         wallKickOffTimer = 0f;
+        digTimer = 0f;
+        digCooldownTimer = 0f;
         
         // Reset movement flags
         leftGroundByJumping = false;
         wasGroundedLastFrame = false;
         sprayUsedThisJump = false;
+        digUsedThisJump = false;
         
         // Reset direction and wall states
         facingDirection = 1; // Reset to facing right
@@ -804,6 +1030,13 @@ public class PlayerController_pif : MonoBehaviour
         
         // Reset gravity scale to default
         rb.gravityScale = gravityWhileFalling;
+        
+        // Re-enable collision with climbable objects if phasing was active
+        if (isDigPhasing)
+        {
+            Debug.Log("Death - restoring diggable collision");
+            SetDiggableCollisionEnabled(true);
+        }
     }
 
     private void HandleAnimations()
@@ -813,5 +1046,50 @@ public class PlayerController_pif : MonoBehaviour
         animator.SetBool("isGliding", isGliding);
         animator.SetBool("isJumping", isJumping);
         animator.SetBool("isWallClinging", isWallClinging);
+        animator.SetBool("isDigging", isDigging);
+        animator.SetBool("isDigPhasing", isDigPhasing);
+    }
+
+    private void SetDiggableCollisionEnabled(bool enabled)
+    {
+        Debug.Log($"Setting diggable collision to: {enabled}");
+
+        // Get the current layer of the player's colliders
+        int playerLayer = gameObject.layer;
+
+        // Get the first layer number from the diggable layer mask
+        int diggableLayerNumber = GetLayerFromMask(diggableLayer);
+        
+        if (diggableLayerNumber >= 0)
+        {
+            // Use Physics2D.IgnoreLayerCollision to ignore/restore collision between player layer and climbable layer
+            Physics2D.IgnoreLayerCollision(playerLayer, diggableLayerNumber, !enabled);
+            Debug.Log($"Set layer collision between player layer {playerLayer} and climbable layer {diggableLayerNumber} to: {enabled}");
+        }
+        else
+        {
+            Debug.LogWarning("No climbable layer found in LayerMask. Make sure to set the climbableLayer field in the inspector.");
+        }
+    }
+    
+    private int GetLayerFromMask(LayerMask layerMask)
+    {
+        // Convert layer mask to layer number
+        int mask = layerMask.value;
+        if (mask == 0) return -1;
+        
+        int layer = 0;
+        while (mask > 1)
+        {
+            mask >>= 1;
+            layer++;
+        }
+        return layer;
+    }
+
+    // Helper method to validate layer setup
+    private void ValidateLayerSetup()
+    {
+        int diggableLayerNumber = GetLayerFromMask(diggableLayer);
     }
 }
