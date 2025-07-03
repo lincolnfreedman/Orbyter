@@ -59,6 +59,11 @@ public class PlayerController_pif : MonoBehaviour
     private float digCooldownTimer = 0f; // Track dig cooldown
     private float digTimer = 0f; // Track how long we've been digging
     private bool digUsedThisJump = false; // Track if dig has been used since last grounding/wall cling
+    private Vector2 digExitVelocity; // Velocity when exiting dig phase
+    private float digExitTimer = 0f; // Timer for velocity interpolation after exiting dig phase
+    private bool isDigExiting = false; // Track if we're in the dig exit velocity interpolation phase
+    private Vector2 lastGroundedPosition; // Track the character's last grounded position
+    public float safeDistanceFromDamaging = 3f; // Minimum distance from damaging objects to update last grounded position
     private bool footstepPlayed = false;
     private PlayerInput playerInput;
     private InputAction moveAction;
@@ -85,13 +90,11 @@ public class PlayerController_pif : MonoBehaviour
         moveAction = playerInput.actions["Move"];
         verticalAction = playerInput.actions["Vertical"];
         jumpAction = playerInput.actions["Jump"];
-        glideAction = playerInput.actions["Glide"]; 
-        fastFallAction = playerInput.actions["FastFall"]; 
-        sprayAction = playerInput.actions["Spray"]; 
-        digAction = playerInput.actions["Dig"]; 
-
-        // Validate layer setup
-        ValidateLayerSetup();
+        glideAction = playerInput.actions["Glide"];
+        fastFallAction = playerInput.actions["FastFall"];
+        sprayAction = playerInput.actions["Spray"];
+        digAction = playerInput.actions["Dig"];
+        lastGroundedPosition = transform.position; // Initialize last grounded position to current position
     }
 
     // Update is called once per frame
@@ -251,6 +254,9 @@ public class PlayerController_pif : MonoBehaviour
 
         // Handle Animations
         HandleAnimations();
+        
+        // Log the character's last grounded position at the end of each frame
+        LogLastGroundedPosition();
     }
     
     private void ApplyTerminalVelocity()
@@ -430,7 +436,7 @@ public class PlayerController_pif : MonoBehaviour
         if (isDigging)
         {
             // Check if we're touching a climbable object during dig
-            bool touchingClimbable = IsTouchingDiggableWall();
+            bool touchingClimbable = EnvironmentTracker.IsTouchingDiggableWall(normalCollider, glidingCollider, diggableLayer);
             
             if (touchingClimbable && !isDigPhasing)
             {
@@ -439,13 +445,39 @@ public class PlayerController_pif : MonoBehaviour
             }
             else if (!touchingClimbable && isDigPhasing)
             {
-                // No longer touching climbable objects, end phasing
+                // No longer touching climbable objects, end phasing and start velocity interpolation
                 isDigPhasing = false;
+                isDigExiting = true;
+                digExitVelocity = rb.linearVelocity; // Store current velocity for interpolation
+                digExitTimer = digTimer; // Store remaining dig time for interpolation duration
             }
             
-            // Only end dig if timer expires AND not phasing
-            if (!isDigPhasing)
+            // Handle velocity interpolation when exiting dig phase
+            if (isDigExiting && digExitTimer > 0f)
             {
+                // Calculate interpolation progress (0 to 1, where 0 is start of exit, 1 is end)
+                float progress = 1f - (digExitTimer / (digTimer > 0f ? digTimer : digDuration));
+
+                // Interpolate from full velocity to 36% of exit velocity
+                Vector2 targetVelocity = digExitVelocity * 0.36f;
+                Vector2 currentVelocity = Vector2.Lerp(digExitVelocity, targetVelocity, progress);
+                
+                rb.linearVelocity = currentVelocity;
+                
+                // Decrease the exit timer
+                digExitTimer -= Time.deltaTime;
+                
+                // End dig exit when timer reaches zero
+                if (digExitTimer <= 0f)
+                {
+                    isDigExiting = false;
+                    isDigging = false;
+                    SetDiggableCollisionEnabled(true);
+                }
+            }
+            else if (!isDigPhasing && !isDigExiting)
+            {
+                // Normal dig timer countdown when not phasing and not in exit phase
                 digTimer -= Time.deltaTime;
                 if (digTimer <= 0f)
                 {
@@ -458,11 +490,15 @@ public class PlayerController_pif : MonoBehaviour
         else if (isDigPhasing)
         {
             // Handle phasing state even when not digging (e.g., when dig timer expired while inside wall)
-            bool touchingClimbable = IsTouchingDiggableWall();
+            bool touchingClimbable = EnvironmentTracker.IsTouchingDiggableWall(normalCollider, glidingCollider, diggableLayer);
             
             if (!touchingClimbable)
             {
+                // End phasing and start velocity interpolation
                 isDigPhasing = false;
+                isDigExiting = true;
+                digExitVelocity = rb.linearVelocity; // Store current velocity for interpolation
+                digExitTimer = digTimer; // Store remaining dig time for interpolation duration
             }
         }
     }
@@ -540,7 +576,7 @@ public class PlayerController_pif : MonoBehaviour
     
     private void HandleWallClinging(Vector2 moveInput)
     {
-        isGrounded = IsStandingOnSurface();
+        isGrounded = EnvironmentTracker.IsStandingOnSurface(rb, isDigPhasing);
         
         // Don't allow wall clinging if currently wall kicking off, if grounded, if fast falling, or if digging
         if (isWallKickingOff || isGrounded || isFastFalling || isDigging)
@@ -555,7 +591,7 @@ public class PlayerController_pif : MonoBehaviour
         }
         
         // Check if we're in the air and touching a climbable wall
-        if (IsTouchingClimbableWall() && !isFastFalling)
+        if (EnvironmentTracker.IsTouchingClimbableWall(rb) && !isFastFalling)
         {
             // Only start wall clinging if we have negative velocity (falling), but continue if already clinging
             if (!isWallClinging && rb.linearVelocity.y < 0)
@@ -572,7 +608,7 @@ public class PlayerController_pif : MonoBehaviour
                 isWallClinging = true;
                 isJumping = false; // End any current jump
                 DeactivateGlide();
-                wallDirection = GetWallDirection(); // Store which side the wall is on
+                wallDirection = EnvironmentTracker.GetWallDirection(rb); // Store which side the wall is on
                 sprayUsedThisJump = false; // Reset spray availability when wall clinging
                 digUsedThisJump = false; // Reset dig availability when wall clinging
 
@@ -638,62 +674,7 @@ public class PlayerController_pif : MonoBehaviour
         }
     }
     
-    private bool IsTouchingClimbableWall()
-    {
-        // Get all current collisions
-        ContactPoint2D[] contacts = new ContactPoint2D[10];
-        int contactCount = rb.GetContacts(contacts);
-        
-        for (int i = 0; i < contactCount; i++)
-        {
-            // Check if touching a climbable wall (vertical surface)
-            // Wall normals point horizontally (left or right)
-            if (contacts[i].collider.CompareTag("Climbable") && Mathf.Abs(contacts[i].normal.x) > 0.7f)
-            {
-                return true;
-            }
-        }  
-        return false;
-    }
-    private bool IsTouchingDiggableWall()
-    {
-        // Use layer-based detection for climbable objects
-        // Get the currently active collider (normal or gliding)
-        Collider2D activeCollider = normalCollider.enabled ? normalCollider : glidingCollider;
-        
-        // Create a contact filter for the climbable layer
-        ContactFilter2D contactFilter = new ContactFilter2D();
-        contactFilter.SetLayerMask(diggableLayer);
-        contactFilter.useLayerMask = true;
-        contactFilter.useTriggers = true; // Include triggers in overlap check
-        
-        // Check for overlap with any colliders on the climbable layer
-        List<Collider2D> overlappingColliders = new List<Collider2D>();
-        int overlapCount = activeCollider.Overlap(contactFilter, overlappingColliders);
-        
-        return overlapCount > 0;
-    }
     
-    private int GetWallDirection()
-    {
-        // Get all current collisions
-        ContactPoint2D[] contacts = new ContactPoint2D[10];
-        int contactCount = rb.GetContacts(contacts);
-
-        for (int i = 0; i < contactCount; i++)
-        {
-            // Check if touching a climbable wall (vertical surface)
-            if (contacts[i].collider.CompareTag("Climbable") && Mathf.Abs(contacts[i].normal.x) > 0.7f)
-            {
-                // Return the direction of the wall normal
-                // If normal points right (positive x), wall is on the left (-1)
-                // If normal points left (negative x), wall is on the right (1)
-                return contacts[i].normal.x > 0 ? -1 : 1;
-            }
-        }
-
-        return 0; // No wall found
-    }
         private void HandleGliding(Vector2 moveInput)
     {
         // Check if glide button is pressed and we're in the air (but not wall clinging or digging)
@@ -797,8 +778,18 @@ public class PlayerController_pif : MonoBehaviour
         }
         else if (isDigging)
         {
+            // Check if we're in dig exit velocity interpolation phase
+            if (isDigExiting)
+            {
+                // Don't override velocity during dig exit interpolation - let HandleDig manage it
+                // Still update facing direction based on current velocity if significant
+                if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)
+                {
+                    facingDirection = rb.linearVelocity.x > 0 ? 1 : -1;
+                }
+            }
             // Check if we're in dig phasing mode for 8-directional movement
-            if (isDigPhasing)
+            else if (isDigPhasing)
             {
                 // 8-directional acceleration-based movement during dig phasing
                 float horizontal = moveInput.x;
@@ -891,13 +882,13 @@ public class PlayerController_pif : MonoBehaviour
         // Check for damaging objects first
         if (collision.gameObject.CompareTag("Damaging"))
         {
-            Die();
+            TakeDamage();
             return; // Exit early to prevent other collision logic
         }
         
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Climbable"))
         {
-            isGrounded = IsStandingOnSurface();
+            isGrounded = EnvironmentTracker.IsStandingOnSurface(rb, isDigPhasing);
         }
     }
 
@@ -906,13 +897,13 @@ public class PlayerController_pif : MonoBehaviour
         // Check for damaging objects first
         if (collision.gameObject.CompareTag("Damaging"))
         {
-            Die();
+            TakeDamage();
             return; // Exit early to prevent other collision logic
         }
         
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Climbable"))
         {
-            isGrounded = IsStandingOnSurface();
+            isGrounded = EnvironmentTracker.IsStandingOnSurface(rb, isDigPhasing);
         }
     }
 
@@ -921,7 +912,7 @@ public class PlayerController_pif : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Climbable"))
         {
             // Check if we're still touching any ground after this collision ends
-            isGrounded = IsStandingOnSurface();
+            isGrounded = EnvironmentTracker.IsStandingOnSurface(rb, isDigPhasing);
         }
     }
 
@@ -930,7 +921,7 @@ public class PlayerController_pif : MonoBehaviour
         // Check for damaging objects
         if (other.CompareTag("Damaging"))
         {
-            Die();
+            TakeDamage();
         }
     }
 
@@ -939,7 +930,7 @@ public class PlayerController_pif : MonoBehaviour
         // Check for damaging objects
         if (other.CompareTag("Damaging"))
         {
-            Die();
+            TakeDamage();
         }
     }
     private void DeactivateGlide()
@@ -951,52 +942,20 @@ public class PlayerController_pif : MonoBehaviour
         isGliding = false; // Set gliding state to false
     }
 
-    private bool IsStandingOnSurface()
-    {
-        // Don't consider grounded during dig phasing
-        if (isDigPhasing)
-        {
-            return false;
-        }
-        
-        return HasContactWithNormal(contact => IsGroundSurface(contact.collider) && IsUpwardFacing(contact.normal));
-    }
 
-    private bool HasContactWithNormal(System.Func<ContactPoint2D, bool> condition)
-    {
-        ContactPoint2D[] contacts = new ContactPoint2D[10];
-        int contactCount = rb.GetContacts(contacts);
-        
-        for (int i = 0; i < contactCount; i++)
-        {
-            if (condition(contacts[i]))
-            {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-
-
-    private bool IsGroundSurface(Collider2D collider)
-    {
-        return collider.CompareTag("Ground") || collider.CompareTag("Climbable");
-    }
-
-
-    private bool IsUpwardFacing(Vector2 normal)
-    {
-        return normal.y > 0.7f; // 0.7 allows for slightly sloped surfaces
-    }
-
-    private void Die()
+    private void TakeDamage()
     {
         // Reset position to origin
-        transform.position = new Vector3(-36, -11, 0);
+        transform.position = lastGroundedPosition;
         
         // Reset velocity
         rb.linearVelocity = Vector2.zero;
+
+        // Re-enable collision with climbable objects if phasing was active
+        if (isDigPhasing)
+        {
+            SetDiggableCollisionEnabled(true);
+        }
         
         // Reset all movement states
         isGrounded = false;
@@ -1008,6 +967,7 @@ public class PlayerController_pif : MonoBehaviour
         isSpraying = false;
         isDigging = false;
         isDigPhasing = false;
+        isDigExiting = false;
         
         // Reset movement timers and counters
         jumpTimeCounter = 0f;
@@ -1017,6 +977,7 @@ public class PlayerController_pif : MonoBehaviour
         wallKickOffTimer = 0f;
         digTimer = 0f;
         digCooldownTimer = 0f;
+        digExitTimer = 0f;
         
         // Reset movement flags
         leftGroundByJumping = false;
@@ -1030,13 +991,6 @@ public class PlayerController_pif : MonoBehaviour
         
         // Reset gravity scale to default
         rb.gravityScale = gravityWhileFalling;
-        
-        // Re-enable collision with climbable objects if phasing was active
-        if (isDigPhasing)
-        {
-            Debug.Log("Death - restoring diggable collision");
-            SetDiggableCollisionEnabled(true);
-        }
     }
 
     private void HandleAnimations()
@@ -1052,24 +1006,11 @@ public class PlayerController_pif : MonoBehaviour
 
     private void SetDiggableCollisionEnabled(bool enabled)
     {
-        Debug.Log($"Setting diggable collision to: {enabled}");
-
         // Get the current layer of the player's colliders
         int playerLayer = gameObject.layer;
 
         // Get the first layer number from the diggable layer mask
-        int diggableLayerNumber = GetLayerFromMask(diggableLayer);
-        
-        if (diggableLayerNumber >= 0)
-        {
-            // Use Physics2D.IgnoreLayerCollision to ignore/restore collision between player layer and climbable layer
-            Physics2D.IgnoreLayerCollision(playerLayer, diggableLayerNumber, !enabled);
-            Debug.Log($"Set layer collision between player layer {playerLayer} and climbable layer {diggableLayerNumber} to: {enabled}");
-        }
-        else
-        {
-            Debug.LogWarning("No climbable layer found in LayerMask. Make sure to set the climbableLayer field in the inspector.");
-        }
+        Physics2D.IgnoreLayerCollision(playerLayer, GetLayerFromMask(diggableLayer), !enabled);
     }
     
     private int GetLayerFromMask(LayerMask layerMask)
@@ -1086,10 +1027,33 @@ public class PlayerController_pif : MonoBehaviour
         }
         return layer;
     }
-
-    // Helper method to validate layer setup
-    private void ValidateLayerSetup()
+    
+    private void LogLastGroundedPosition()
     {
-        int diggableLayerNumber = GetLayerFromMask(diggableLayer);
+        // Update and log the last grounded position if currently grounded and safe from damaging objects
+        if (isGrounded && IsSafeFromDamagingObjects())
+        {
+            lastGroundedPosition = transform.position;
+            // Uncomment the line below to enable console logging (for debugging)
+            // Debug.Log($"Last grounded position updated: {lastGroundedPosition}");
+        }
+    }
+    
+    private bool IsSafeFromDamagingObjects()
+    {
+        // Find all colliders with "Damaging" tag within the safe distance
+        Collider2D[] damagingObjects = Physics2D.OverlapCircleAll(transform.position, safeDistanceFromDamaging);
+        
+        foreach (Collider2D collider in damagingObjects)
+        {
+            if (collider.CompareTag("Damaging"))
+            {
+                // Found a damaging object within safe distance - not safe to update position
+                return false;
+            }
+        }
+        
+        // No damaging objects found within safe distance
+        return true;
     }
 }
