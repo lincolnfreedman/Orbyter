@@ -15,7 +15,7 @@ TagManager:
   - Water
   - UI
   - Diggable
-  - 
+  - Fire
   - 
   - 
   - 
@@ -49,6 +49,9 @@ TagManager:
     locked: 0
   - name: Tiles
     uniqueID: 1480950103
+    locked: 0
+  - name: Hazards
+    uniqueID: 2478365223
     locked: 0
   - name: Player
     uniqueID: 660116951
