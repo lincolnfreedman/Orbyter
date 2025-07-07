@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainMenu_pip : MonoBehaviour
@@ -44,6 +45,16 @@ public class MainMenu_pip : MonoBehaviour
         SetBGMVolume(bgmVolSlider.value);
         sfxVolSlider.value = PlayerPrefs.GetFloat("SFXVol", 0.7f);
         SetSFXVolume(sfxVolSlider.value);
+    }
+
+    public void StartGame()
+    {
+        SceneManager.LoadScene(1);
+    }
+
+    public void ExitGame()
+    {
+        Application.Quit();
     }
 
     public void BackButton()
