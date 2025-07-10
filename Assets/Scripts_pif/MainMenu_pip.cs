@@ -22,6 +22,17 @@ public class MainMenu_pip : MonoBehaviour
     private Slider bgmVolSlider;
     [SerializeField]
     private Slider sfxVolSlider;
+    [SerializeField]
+    private Button startGameButton;
+    [SerializeField]
+    private Button controlsButton;
+    [SerializeField]
+    private Button controlsBackButton;
+    [SerializeField]
+    private Slider BGMSlider;
+    [SerializeField]
+    private Button extrasBackButton;
+
 
     private CurrentScreen currentScreen;
 
@@ -83,6 +94,7 @@ public class MainMenu_pip : MonoBehaviour
         fade.SetActive(true);
         settingsMenu.SetActive(true);
         currentScreen = CurrentScreen.Settings;
+        controlsButton.Select();
     }
 
     public void CloseSettingsMenu()
@@ -90,12 +102,14 @@ public class MainMenu_pip : MonoBehaviour
         fade.SetActive(false);
         settingsMenu.SetActive(false);
         currentScreen = CurrentScreen.Main;
+        startGameButton.Select();
     }
     public void OpenControlsMenu()
     {
         settingsMenu.SetActive(false);
         controlsMenu.SetActive(true);
         currentScreen = CurrentScreen.Controls;
+        controlsBackButton.Select();
     }
 
     public void CloseControlsMenu()
@@ -103,12 +117,14 @@ public class MainMenu_pip : MonoBehaviour
         settingsMenu.SetActive(true);
         controlsMenu.SetActive(false);
         currentScreen = CurrentScreen.Settings;
+        controlsButton.Select();
     }
     public void OpenAudioMenu()
     {
         settingsMenu.SetActive(false);
         audioMenu.SetActive(true);
         currentScreen = CurrentScreen.Audio;
+        BGMSlider.Select();
     }
 
     public void CloseAudioMenu()
@@ -116,12 +132,14 @@ public class MainMenu_pip : MonoBehaviour
         settingsMenu.SetActive(true);
         audioMenu.SetActive(false);
         currentScreen = CurrentScreen.Settings;
+        controlsButton.Select();
     }
     public void OpenExtrasMenu()
     {
         settingsMenu.SetActive(false);
         extrasMenu.SetActive(true);
         currentScreen = CurrentScreen.Audio;
+        extrasBackButton.Select();
     }
 
     public void CloseExtrasMenu()
@@ -129,6 +147,7 @@ public class MainMenu_pip : MonoBehaviour
         settingsMenu.SetActive(true);
         extrasMenu.SetActive(false);
         currentScreen = CurrentScreen.Settings;
+        controlsButton.Select();
     }
 
     #region Audio
