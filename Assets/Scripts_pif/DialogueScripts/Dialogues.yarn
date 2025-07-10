@@ -1,0 +1,39 @@
+﻿title: Start
+---
+<<disable_movement>>
+Scarf: Huh?! The siren's going off!
+Scarf: It hasn't done that in years! Let's see what's going on…
+<<enable_movement>>
+===
+
+title: AIIntro
+---
+<<disable_movement>>
+Scarf: What the … You can't be Sirius!
+Scarf: AI?! Was draining Earth not enough…? I should avoid getting caught.
+<<enable_movement>>
+===
+
+title: GonnaCrash
+---
+<<disable_movement>>
+Scarf: Uh oh... I don't think I can fix this.
+Scarf: I need to get to the escape pod before I crash!
+<<enable_movement>>
+===
+
+title: CrashLanded
+---
+<<disable_movement>>
+Scarf: Where am I?
+Scarf: I see some smoke in the distance… My ship might be over there!
+<<enable_movement>>
+===
+
+title: Fire
+---
+<<disable_movement>>
+Scarf: (Cough) This is more than a crash landing… The forest is on fire!
+Scarf: I can't breathe, I need to get out of here!
+<<enable_movement>>
+===

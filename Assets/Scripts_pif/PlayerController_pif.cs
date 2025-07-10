@@ -119,10 +119,14 @@ public class PlayerController_pif : MonoBehaviour
     private InputAction fastFallAction;
     private InputAction sprayAction;
     private InputAction digAction;
+    private InputAction interactAction;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private Player_pip player;
 
+    // Public property to access interact action from other scripts
+    public InputAction InteractAction => interactAction;
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
@@ -138,12 +142,20 @@ public class PlayerController_pif : MonoBehaviour
         fastFallAction = playerInput.actions["FastFall"];
         sprayAction = playerInput.actions["Spray"];
         digAction = playerInput.actions["Dig"];
+        interactAction = playerInput.actions["Interact"];
         lastGroundedPosition = transform.position; // Initialize last grounded position to current position
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Skip all movement processing if movement is disabled
+        if (movementDisabled)
+        {
+            HandleVisuals(); // Still handle visuals/animations
+            return;
+        }
+        
         Vector2 moveInput = moveAction.ReadValue<Vector2>();
 
         HandleInput();
@@ -268,19 +280,27 @@ public class PlayerController_pif : MonoBehaviour
     {
         UpdateSprayCooldown();
         
-        // Check if spray button is pressed and spray hasn't been used this jump and not digging
-        if (sprayAction.triggered && !sprayUsedThisJump && !isDigging && sprayCooldownTimer <= 0f && waterSpoutPrefab != null)
+        // Reset spray flag if grounded or wall clinging (allows immediate re-use)
+        if (isGrounded || isWallClinging)
+        {
+            sprayUsedThisJump = false;
+        }
+        
+        // Check if spray button is pressed and spray is available and not digging and not wall clinging
+        // Spray is usable if: cooldown has expired AND not used this jump
+        bool sprayAvailable = sprayCooldownTimer <= 0f && !sprayUsedThisJump;
+        if (sprayAction.triggered && sprayAvailable && !isDigging && !isWallClinging && waterSpoutPrefab != null)
         {
             // Get separate horizontal and vertical inputs for spray direction
             float horizontal = moveAction.ReadValue<Vector2>().x;
             float vertical = verticalAction.ReadValue<float>();
-            
+
             // Create combined input vector for spray
             Vector2 sprayInput = new Vector2(horizontal, vertical);
-            
+
             // Determine spray direction based on input priority
             Vector2 sprayDirection = GetSprayDirection(sprayInput);
-            
+
             // Spawn water spout
             SpawnWaterSpout(sprayDirection);
 
@@ -294,13 +314,13 @@ public class PlayerController_pif : MonoBehaviour
             sprayTimer = sprayDuration;
             sprayCooldownTimer = sprayCooldown;
             sprayUsedThisJump = true;
-            
+
             // Reset instant boost flag for new spray
             sprayInstantBoostUsed = false;
-            
+
             // Set spray state
             isSpraying = true;
-            
+
             // Disable conflicting movement states when starting spray
             DisableConflictingStatesForSpray();
         }
@@ -628,6 +648,10 @@ public class PlayerController_pif : MonoBehaviour
         wallDirection = EnvironmentTracker.GetWallDirection(rb);
         sprayUsedThisJump = false;
         digUsedThisJump = false;
+        
+        // Reset spray cooldown when starting wall cling
+        sprayCooldownTimer = 0f;
+        
         player.PlayerSFX(2);
     }
     
@@ -1108,6 +1132,9 @@ public class PlayerController_pif : MonoBehaviour
                 leftGroundByJumping = false;
                 sprayUsedThisJump = false;
                 digUsedThisJump = false;
+                
+                // Reset spray cooldown when becoming grounded
+                sprayCooldownTimer = 0f;
             }
         }
         else
@@ -1260,12 +1287,6 @@ public class PlayerController_pif : MonoBehaviour
     
     private void ApplyWaterSpoutAcceleration()
     {
-        // Do not apply any movement effects if player is grounded
-        if (isGrounded)
-        {
-            return;
-        }
-        
         // Check if water spout is touching something other than the player
         if (currentWaterSpout != null)
         {
@@ -1276,6 +1297,7 @@ public class PlayerController_pif : MonoBehaviour
             if (spoutComponent != null)
             {
                 // Use reflection to call IsTouchingSomething method
+                // This call is important even when grounded as it handles fire destruction
                 var method = spoutComponent.GetType().GetMethod("IsTouchingSomething");
                 if (method != null)
                 {
@@ -1283,7 +1305,8 @@ public class PlayerController_pif : MonoBehaviour
                 }
             }
             
-            if (isTouching)
+            // Only apply movement effects if player is NOT grounded
+            if (!isGrounded && isTouching)
             {
                 // Apply instant boost once when spout first makes contact
                 if (!sprayInstantBoostUsed)
@@ -1325,9 +1348,9 @@ public class PlayerController_pif : MonoBehaviour
                     }
                 }
             }
-            else
+            else if (!isGrounded)
             {
-                // Spout is not touching anything - apply horizontal deceleration if spraying horizontally
+                // Spout is not touching anything - apply horizontal deceleration if spraying horizontally (only when airborne)
                 ApplyHorizontalSprayDeceleration();
             }
         }
@@ -1389,13 +1412,70 @@ public class PlayerController_pif : MonoBehaviour
         if (sprayCooldownTimer > 0f)
         {
             sprayCooldownTimer -= Time.deltaTime;
-            
-            // Reset spray usage flag when cooldown expires, but only if grounded
-            // This ensures airborne spray usage still requires landing/wall cling to reset
-            if (sprayCooldownTimer <= 0f && isGrounded)
+        }
+        
+        // Note: Spray cooldown is reset in UpdateCoyoteTime() when grounded 
+        // and in StartWallClinging() when wall clinging begins
+    }
+    
+    // Movement control for dialogue system
+    private bool movementDisabled = false;
+    
+    /// <summary>
+    /// Disables all player movement and input actions (for dialogue/cutscenes)
+    /// </summary>
+    public void DisableMovement()
+    {
+        movementDisabled = true;
+        
+        // Stop all current movement
+        rb.linearVelocity = Vector2.zero;
+        
+        // Reset all movement states
+        isJumping = false;
+        DeactivateGlide();
+        isFastFalling = false;
+        isWallClinging = false;
+        isDigging = false;
+        isDigPhasing = false;
+        isDigExiting = false;
+        
+        // Stop spraying
+        if (isSpraying)
+        {
+            isSpraying = false;
+            if (currentWaterSpout != null)
             {
-                sprayUsedThisJump = false;
+                Destroy(currentWaterSpout);
+                currentWaterSpout = null;
             }
         }
+        
+        // Reset timers
+        jumpTimeCounter = 0f;
+        jumpBufferTimer = 0f;
+        sprayTimer = 0f;
+        digTimer = 0f;
+        digExitTimer = 0f;
+        wallDirection = 0;
+        
+        Debug.Log("Player movement disabled");
+    }
+    
+    /// <summary>
+    /// Re-enables all player movement and input actions
+    /// </summary>
+    public void EnableMovement()
+    {
+        movementDisabled = false;
+        Debug.Log("Player movement enabled");
+    }
+    
+    /// <summary>
+    /// Check if movement is currently disabled
+    /// </summary>
+    public bool IsMovementDisabled()
+    {
+        return movementDisabled;
     }
 }
