@@ -1,13 +1,31 @@
 fileFormatVersion: 2
-guid: 55da8d7e2d0831143a23fb2c4a4d725e
+guid: 0aac2de942d03a844977d283b0cd1b9c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8837378977137953963
-    second: Untitled1334_20250707030600_0
+      213: 4408388530911852126
+    second: Untitled1334_20250707030600 1_0
   - first:
-      213: -1995324653119655505
-    second: Untitled1334_20250707030600_1
+      213: 7520997175836213181
+    second: Untitled1334_20250707030600 1_1
+  - first:
+      213: 5952063191596171185
+    second: Untitled1334_20250707030600 1_2
+  - first:
+      213: -2324925310962926213
+    second: Untitled1334_20250707030600 1_3
+  - first:
+      213: 6122385724927935425
+    second: Untitled1334_20250707030600 1_4
+  - first:
+      213: 8519460997796376555
+    second: Untitled1334_20250707030600 1_5
+  - first:
+      213: 7750114128286756156
+    second: Untitled1334_20250707030600 1_6
+  - first:
+      213: 7565481833848148816
+    second: Untitled1334_20250707030600 1_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -54,7 +72,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 350
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -112,17 +130,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Untitled1334_20250707030600_0
+      name: Untitled1334_20250707030600 1_0
       rect:
         serializedVersion: 2
-        x: 22
-        y: 108
-        width: 1113
-        height: 776
+        x: 0
+        y: 0
+        width: 1280
+        height: 960
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,20 +162,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bac00d57b5da4aa70800000000000000
-      internalID: 8837378977137953963
+      spriteID: e5638e0230ebd2d30800000000000000
+      internalID: 4408388530911852126
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Untitled1334_20250707030600_1
+      name: Untitled1334_20250707030600 1_1
       rect:
         serializedVersion: 2
-        x: 974
-        y: 73
-        width: 67
-        height: 79
+        x: 1280
+        y: 0
+        width: 1280
+        height: 960
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +184,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fa13937bcce2f44e0800000000000000
-      internalID: -1995324653119655505
+      spriteID: dbffe6e5513ff5860800000000000000
+      internalID: 7520997175836213181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Untitled1334_20250707030600 1_2
+      rect:
+        serializedVersion: 2
+        x: 2560
+        y: 0
+        width: 1280
+        height: 960
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bf74c7ffe9f99250800000000000000
+      internalID: 5952063191596171185
       vertices: []
       indices: 
       edges: []
@@ -163,7 +216,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: bc3a796ffbed90c46917e8f95d249443
     internalID: 0
     vertices: []
     indices: 
@@ -171,10 +224,13 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":1.0},"gridSpriteSize":{"x":1280.0,"y":960.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Untitled1334_20250707030600_0: 8837378977137953963
-      Untitled1334_20250707030600_1: -1995324653119655505
+      Untitled1334_20250707030600 1_0: 4408388530911852126
+      Untitled1334_20250707030600 1_1: 7520997175836213181
+      Untitled1334_20250707030600 1_2: 5952063191596171185
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

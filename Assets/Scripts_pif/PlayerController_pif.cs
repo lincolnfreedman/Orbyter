@@ -73,6 +73,7 @@ public class PlayerController_pif : MonoBehaviour
     private bool isFastFalling = false;
     private bool isWallKickingOff = false;
     private bool isSpraying = false;
+    private int sprayDirection = 0; //0 = Down, 1 = Up, 2 = Horizontal
     private bool isDigging = false;
     private bool isDigPhasing = false;
     public int facingDirection = 1;
@@ -547,22 +548,26 @@ public class PlayerController_pif : MonoBehaviour
         // Check for down input first (highest priority) - but skip if grounded
         if (Mathf.Abs(sprayInput.y) > inputThreshold && sprayInput.y < 0 && !isGrounded)
         {
+            animator.SetInteger("SprayDirection", 0);
             return new Vector2(0f, -1f); // Down
         }
         
         // Check for up input (second priority)
         if (Mathf.Abs(sprayInput.y) > inputThreshold && sprayInput.y > 0)
         {
+            animator.SetInteger("SprayDirection", 1);
             return new Vector2(0f, 1f); // Up
         }
         
         // Check for horizontal input (third priority)
         if (Mathf.Abs(sprayInput.x) > inputThreshold)
         {
+            animator.SetInteger("SprayDirection", 2);
             return new Vector2(sprayInput.x > 0 ? 1f : -1f, 0f);
         }
-        
+
         // No valid input - use facing direction
+        animator.SetInteger("SprayDirection", 2);
         return new Vector2(facingDirection, 0f);
     }
     
@@ -1027,7 +1032,8 @@ public class PlayerController_pif : MonoBehaviour
         animator.SetBool("isJumping", isJumping);
         animator.SetBool("isWallClinging", isWallClinging);
         animator.SetBool("isDigging", isDigging);
-        animator.SetBool("isDigPhasing", isDigPhasing);
+        //animator.SetBool("isDigPhasing", isDigPhasing);
+        animator.SetBool("isSpraying", isSpraying);
     }
 
     private void SetDiggableCollisionEnabled(bool enabled)

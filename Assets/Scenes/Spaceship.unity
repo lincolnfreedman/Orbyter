@@ -54707,7 +54707,7 @@ PrefabInstance:
       objectReference: {fileID: -7842666502197522759, guid: 38377ce2c1080a645a7c0085ea269aab, type: 3}
     - target: {fileID: 4000201519558213770, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
       propertyPath: m_SortingLayer
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4000201519558213770, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
       propertyPath: m_SortingLayerID
@@ -54750,8 +54750,20 @@ PrefabInstance:
       value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4318865354483485339, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
+      propertyPath: waterSpoutPrefab
+      value: 
+      objectReference: {fileID: 8063990229303028272, guid: b7b96b971109f7043935f57a9660e80e, type: 3}
+    - target: {fileID: 4318865354483485339, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
+      propertyPath: verticalSprayOffset
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4318865354483485339, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
       propertyPath: diggableLayer.m_Bits
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 4318865354483485339, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
+      propertyPath: horizontalSprayOffset
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4318865354483485339, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
       propertyPath: glideVelocityMultiplier
