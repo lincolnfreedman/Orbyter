@@ -32,6 +32,9 @@ public class TooltipTrigger : MonoBehaviour
     [Tooltip("The input action name required to dismiss the tooltip (e.g., 'Interact', 'Jump')")]
     public string dismissInputAction;
     
+    // Static reference to track which tooltip currently has an active dismiss action
+    private static TooltipTrigger currentActiveTooltip = null;
+    
     private bool hasTriggered = false;
     private bool playerInTrigger = false;
     private float displayTimer = 0f;
@@ -42,12 +45,6 @@ public class TooltipTrigger : MonoBehaviour
     {
         // Validate setup
         ValidateSetup();
-        
-        // Find player input if we need to track input for dismissal
-        if (requireInputToDismiss)
-        {
-            SetupInputAction();
-        }
         
         // Ensure tooltip UI starts hidden
         if (tooltipUI != null)
@@ -74,7 +71,6 @@ public class TooltipTrigger : MonoBehaviour
             if (dismissAction.triggered)
             {
                 HideTooltip();
-                dismissAction = null; // Clear action to prevent multiple triggers
             }
         }
     }
@@ -188,6 +184,20 @@ public class TooltipTrigger : MonoBehaviour
         // Show the tooltip UI
         tooltipUI.SetActive(true);
         
+        // Set up dismiss input action if required
+        if (requireInputToDismiss)
+        {
+            // Clear any previously active tooltip's dismiss action
+            if (currentActiveTooltip != null && currentActiveTooltip != this)
+            {
+                currentActiveTooltip.ClearDismissAction();
+            }
+            
+            // Set this as the current active tooltip
+            currentActiveTooltip = this;
+            SetupInputAction();
+        }
+        
         // Set up timer if using timed display
         if (displayDuration > 0f)
         {
@@ -206,6 +216,20 @@ public class TooltipTrigger : MonoBehaviour
         {
             tooltipUI.SetActive(false);
             Debug.Log($"TooltipTrigger on {gameObject.name}: Hiding tooltip");
+        }
+        
+        // Clear dismiss action when tooltip is hidden
+        ClearDismissAction();
+    }
+    
+    private void ClearDismissAction()
+    {
+        dismissAction = null;
+        
+        // Clear static reference if this was the active tooltip
+        if (currentActiveTooltip == this)
+        {
+            currentActiveTooltip = null;
         }
     }
 }

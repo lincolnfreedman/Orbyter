@@ -9,6 +9,7 @@ public class Minimap : MonoBehaviour
     [SerializeField] private PlayerController_pif playerController;
     [SerializeField] private GameObject worldGrid;
     [SerializeField] private RectTransform playerIcon;
+    [SerializeField] private RectTransform objectiveIcon;
     
     [Header("Minimap Settings")]
     [SerializeField] private float mapScale = 0.1f;
@@ -31,9 +32,25 @@ public class Minimap : MonoBehaviour
     private Vector2 minimapSize;
     private List<GameObject> terrainBoxes = new List<GameObject>();
     private List<Bounds> terrainBounds = new List<Bounds>(); // Store terrain bounds for position updates
+    private Transform objectiveTarget; // Current objective target object
+    
+    // Static instance for easy access
+    public static Minimap Instance { get; private set; }
     
     void Start()
     {
+        // Set up singleton instance
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Debug.LogWarning("Multiple Minimap instances found! Destroying duplicate.");
+            Destroy(gameObject);
+            return;
+        }
+        
         minimapRect = GetComponent<RectTransform>();
         InitializeMinimap();
     }
@@ -43,6 +60,12 @@ public class Minimap : MonoBehaviour
         if (playerController != null && playerIcon != null)
         {
             UpdatePlayerIconPosition();
+            
+            // Update objective icon position if there's an active objective
+            if (objectiveTarget != null && objectiveIcon != null)
+            {
+                UpdateObjectiveIconPosition();
+            }
             
             // If centering on player, update terrain positions as player moves
             if (centerOnPlayer)
@@ -79,6 +102,13 @@ public class Minimap : MonoBehaviour
             if (playerIcon != null)
             {
                 playerIcon.SetAsLastSibling();
+            }
+            
+            // Ensure objective icon appears behind player icon but above terrain
+            if (objectiveIcon != null)
+            {
+                objectiveIcon.gameObject.SetActive(false); // Start hidden
+                objectiveIcon.SetSiblingIndex(playerIcon != null ? playerIcon.GetSiblingIndex() : transform.childCount - 1);
             }
         }
         else
@@ -408,5 +438,104 @@ public class Minimap : MonoBehaviour
         
         // Check if terrain is within display range
         return distanceX <= maxDisplayRangeX && distanceY <= maxDisplayRangeY;
+    }
+    
+    private void UpdateObjectiveIconPosition()
+    {
+        if (objectiveTarget == null || objectiveIcon == null) return;
+        
+        Vector3 objectiveWorldPos = objectiveTarget.position;
+        Vector2 minimapPosition;
+        
+        if (centerOnPlayer)
+        {
+            // When centering on player, calculate position relative to player
+            minimapPosition = WorldToMinimapPosition(objectiveWorldPos);
+        }
+        else
+        {
+            // When not centering, calculate the objective's position on the minimap
+            minimapPosition = WorldToMinimapPosition(objectiveWorldPos);
+        }
+        
+        objectiveIcon.anchoredPosition = minimapPosition;
+    }
+    
+    /// <summary>
+    /// Sets an objective icon to track a specific world object
+    /// </summary>
+    /// <param name="targetObject">The world object to track (can be null to clear objective)</param>
+    public static void SetObjective(Transform targetObject)
+    {
+        if (Instance == null)
+        {
+            Debug.LogWarning("Minimap instance not found! Cannot set objective.");
+            return;
+        }
+        
+        Instance.objectiveTarget = targetObject;
+        
+        // Show or hide the objective icon based on whether we have a target
+        if (Instance.objectiveIcon != null)
+        {
+            Instance.objectiveIcon.gameObject.SetActive(targetObject != null);
+            
+            // Ensure objective icon appears on top of terrain boxes but below player icon
+            if (targetObject != null)
+            {
+                Instance.objectiveIcon.SetSiblingIndex(Instance.playerIcon.GetSiblingIndex());
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Sets an objective icon to track a specific world position
+    /// </summary>
+    /// <param name="worldPosition">The world position to track</param>
+    public static void SetObjectiveAtPosition(Vector3 worldPosition)
+    {
+        if (Instance == null)
+        {
+            Debug.LogWarning("Minimap instance not found! Cannot set objective.");
+            return;
+        }
+        
+        // Create a temporary GameObject at the target position
+        GameObject tempObjective = new GameObject("TempObjective");
+        tempObjective.transform.position = worldPosition;
+        
+        SetObjective(tempObjective.transform);
+    }
+    
+    /// <summary>
+    /// Clears the current objective
+    /// </summary>
+    public static void ClearObjective()
+    {
+        SetObjective(null);
+    }
+    
+    /// <summary>
+    /// Checks if there is currently an active objective
+    /// </summary>
+    /// <returns>True if an objective is set, false otherwise</returns>
+    public static bool HasObjective()
+    {
+        return Instance != null && Instance.objectiveTarget != null;
+    }
+    
+    void OnDestroy()
+    {
+        // Clear static instance when destroyed
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+        
+        // Clean up any temporary objective objects
+        if (objectiveTarget != null && objectiveTarget.gameObject.name == "TempObjective")
+        {
+            DestroyImmediate(objectiveTarget.gameObject);
+        }
     }
 }

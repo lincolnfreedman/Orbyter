@@ -34,16 +34,16 @@ public class PlayerMovementYarnCommands : MonoBehaviour
         {
             Debug.LogError("PlayerMovementYarnCommands: Could not find DialogueRunner!");
         }
-    }
-    
-    private void Start()
-    {
         // Register commands with the DialogueRunner
         if (dialogueRunner != null)
         {
             dialogueRunner.AddCommandHandler("disable_movement", DisablePlayerMovement);
             dialogueRunner.AddCommandHandler("enable_movement", EnablePlayerMovement);
         }
+    }
+    
+    private void Start()
+    {
     }
     
     public void DisablePlayerMovement()

@@ -50,6 +50,8 @@ public class PlayerController_pif : MonoBehaviour
     public float horizontalSprayDeceleration = 5f;
     [Tooltip("Instant velocity boost applied once when spout first contacts a surface")]
     public float sprayInstantBoost = 6f;
+    [Tooltip("Multiplier applied to downward velocity when spray begins (similar to jump release multiplier)")]
+    public float sprayStartVelocityMultiplier = 0.6f;
     [Tooltip("Distance from player when spawning horizontal water spouts")]
     public float horizontalSprayOffset = 0.5f;
     [Tooltip("Distance from player when spawning vertical water spouts")]
@@ -65,6 +67,21 @@ public class PlayerController_pif : MonoBehaviour
     
     [Header("Safety")]
     public float safeDistanceFromDamaging = 3f;
+    
+    [Header("Health & Respawn")]
+    [Tooltip("Maximum health points")]
+    public int maxHealth = 3;
+    [Tooltip("Current health points")]
+    public int currentHealth;
+    [Tooltip("Starting position for respawn before any checkpoints")]
+    private Vector3 startingPosition;
+    [Tooltip("Current checkpoint position for respawn")]
+    private Vector3 checkpointPosition;
+    [Tooltip("Whether a checkpoint has been set")]
+    private bool hasCheckpoint = false;
+    [Tooltip("Duration of movement disable after respawning")]
+    public float respawnMovementDisableDuration = 1f;
+    
     private Rigidbody2D rb;
     private bool isGrounded;
     private bool isJumping = false;
@@ -144,6 +161,11 @@ public class PlayerController_pif : MonoBehaviour
         digAction = playerInput.actions["Dig"];
         interactAction = playerInput.actions["Interact"];
         lastGroundedPosition = transform.position; // Initialize last grounded position to current position
+        
+        // Initialize health and respawn system
+        currentHealth = maxHealth;
+        startingPosition = transform.position;
+        checkpointPosition = startingPosition;
     }
 
     // Update is called once per frame
@@ -253,25 +275,35 @@ public class PlayerController_pif : MonoBehaviour
     
     private void HandleFastFalling()
     {
-        // Check if fastfall button is pressed and we're in the air (but not jumping, gliding, digging, or wall clinging)
-        if (fastFallAction.IsPressed() && !isGrounded && !isJumping && !isGliding && !isDigging)
+        // Check if fastfall button is held and we're in the air (but not jumping, gliding, digging, or spraying)
+        // Fast fall can be used while wall clinging to cancel the wall cling
+        if (fastFallAction.IsPressed() && !isGrounded && !isJumping && !isGliding && !isDigging && !isSpraying)
         {
-            // Start fast falling if not already fast falling
+            // If wall clinging, cancel wall cling when fast fall starts
+            if (isWallClinging && !isFastFalling)
+            {
+                isWallClinging = false;
+                wallDirection = 0;
+            }
+            
+            // Apply fast fall effect while button is held
             if (!isFastFalling)
             {
                 isFastFalling = true;
-                // Add downward velocity
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y - fastFallVelocity);
+            }
+            
+            // Continuously apply downward velocity while fast falling
+            if (rb.linearVelocity.y > -fastFallVelocity)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, -fastFallVelocity);
             }
         }
         else
         {
-            // Stop fast falling if currently fast falling
+            // Stop fast falling when button is released or conditions are no longer met (including when spraying starts)
             if (isFastFalling)
             {
                 isFastFalling = false;
-                // Add upward velocity to counter the fast fall
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
             }
         }
     }
@@ -321,6 +353,23 @@ public class PlayerController_pif : MonoBehaviour
             // Set spray state
             isSpraying = true;
 
+            // Apply spray start velocity adjustments
+            float currentVerticalVelocity = rb.linearVelocity.y;
+            
+            // If fast falling, counter the fast fall velocity first
+            if (isFastFalling && currentVerticalVelocity <= -fastFallVelocity)
+            {
+                currentVerticalVelocity += fastFallVelocity;
+            }
+            
+            // Then apply spray start velocity multiplier to reduce any remaining downward velocity
+            if (currentVerticalVelocity < 0)
+            {
+                currentVerticalVelocity *= sprayStartVelocityMultiplier;
+            }
+            
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, currentVerticalVelocity);
+
             // Disable conflicting movement states when starting spray
             DisableConflictingStatesForSpray();
         }
@@ -339,9 +388,11 @@ public class PlayerController_pif : MonoBehaviour
             }
             
             sprayTimer -= Time.deltaTime;
-            if (sprayTimer <= 0f)
+            
+            // End spray if duration expires OR if spray button is released
+            if (sprayTimer <= 0f || !sprayAction.IsPressed())
             {
-                // Destroy water spout when duration ends
+                // Destroy water spout when spray ends
                 if (currentWaterSpout != null)
                 {
                     Destroy(currentWaterSpout);
@@ -364,8 +415,6 @@ public class PlayerController_pif : MonoBehaviour
         if (isFastFalling)
         {
             isFastFalling = false;
-            // Add upward velocity to counter the fast fall
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
         }
         
         // End wall clinging if currently wall clinging
@@ -387,8 +436,6 @@ public class PlayerController_pif : MonoBehaviour
         if (isFastFalling)
         {
             isFastFalling = false;
-            // Add upward velocity to counter the fast fall
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
         }
     }
     
@@ -604,9 +651,10 @@ public class PlayerController_pif : MonoBehaviour
         {
             ProcessWallClinging(moveInput);
         }
-        else if (EnvironmentTracker.IsTouchingClimbableWall(rb))
+        
+        // Check if we should stop wall clinging due to losing wall contact
+        if (isWallClinging && !EnvironmentTracker.IsTouchingClimbableWall(rb))
         {
-            // Lost wall contact, stop clinging
             isWallClinging = false;
             wallDirection = 0;
         }
@@ -614,7 +662,7 @@ public class PlayerController_pif : MonoBehaviour
     
     private bool ShouldPreventWallClinging()
     {
-        if (isWallKickingOff || isGrounded || isFastFalling || isDigging)
+        if (isWallKickingOff || isGrounded || isDigging)
         {
             if (isWallClinging)
             {
@@ -629,7 +677,6 @@ public class PlayerController_pif : MonoBehaviour
     private bool CanStartWallClinging()
     {
         return EnvironmentTracker.IsTouchingClimbableWall(rb) && 
-               !isFastFalling && 
                !isWallClinging && 
                rb.linearVelocity.y < 0;
     }
@@ -639,7 +686,6 @@ public class PlayerController_pif : MonoBehaviour
         if (isFastFalling)
         {
             isFastFalling = false;
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
         }
         
         isWallClinging = true;
@@ -657,15 +703,21 @@ public class PlayerController_pif : MonoBehaviour
     
     private void ProcessWallClinging(Vector2 moveInput)
     {
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+        // Zero velocity to maintain wall cling
+        rb.linearVelocity = new Vector2(0f, 0f);
         
         if (jumpAction.triggered)
         {
             ExecuteWallJump();
         }
-        else
+        else if (moveInput.x != 0)
         {
-            HandleWallClingingMovement(moveInput);
+            // Check if player is moving away from wall - if so, end wall clinging
+            if ((wallDirection > 0 && moveInput.x < 0) || (wallDirection < 0 && moveInput.x > 0))
+            {
+                isWallClinging = false;
+                wallDirection = 0;
+            }
         }
     }
     
@@ -677,34 +729,14 @@ public class PlayerController_pif : MonoBehaviour
         
         rb.linearVelocity = new Vector2(-wallDirection * moveSpeed, jumpForce);
         
+        // Reverse facing direction to face the direction of the wall jump
+        facingDirection = -wallDirection;
+        
         isJumping = true;
         jumpTimeCounter = 0f;
         jumpBufferTimer = 0f;
         coyoteTimer = 0f;
         leftGroundByJumping = true;
-    }
-    
-    private void HandleWallClingingMovement(Vector2 moveInput)
-    {
-        if (moveInput.x != 0)
-        {
-            // Moving away from wall ends clinging
-            if ((wallDirection > 0 && moveInput.x < 0) || (wallDirection < 0 && moveInput.x > 0))
-            {
-                isWallClinging = false;
-                wallDirection = 0;
-            }
-            else
-            {
-                // Moving towards wall - maintain clinging
-                rb.linearVelocity = new Vector2(0f, 0f);
-            }
-        }
-        else
-        {
-            // No input - maintain wall cling
-            rb.linearVelocity = new Vector2(0f, 0f);
-        }
     }
     
     
@@ -731,10 +763,10 @@ public class PlayerController_pif : MonoBehaviour
     
     private void StartGliding(Vector2 moveInput)
     {
+        // Stop fast falling if currently fast falling
         if (isFastFalling)
         {
             isFastFalling = false;
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
         }
 
         glidingCollider.enabled = true;
@@ -822,7 +854,7 @@ public class PlayerController_pif : MonoBehaviour
     {
         if (isWallClinging)
         {
-            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            //rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         }
         else if (isWallKickingOff)
         {
@@ -987,15 +1019,45 @@ public class PlayerController_pif : MonoBehaviour
 
     private void TakeDamage()
     {
-        // Reset position and velocity
-        transform.position = lastGroundedPosition;
-        rb.linearVelocity = Vector2.zero;
-
-        // Re-enable collision if phasing was active
-        if (isDigPhasing)
+        // Decrease health
+        currentHealth--;
+        
+        // Check if player should die
+        if (currentHealth <= 0)
         {
-            SetDiggableCollisionEnabled(true);
+            Die();
         }
+        else
+        {
+            // Take damage but don't die - reset to last grounded position
+            transform.position = lastGroundedPosition;
+            rb.linearVelocity = Vector2.zero;
+            SetDiggableCollisionEnabled(true);
+            
+            // Reset all states and timers
+            ResetAllMovementStates();
+            ResetAllTimers();
+            
+            // Reset defaults
+            facingDirection = 1;
+            wallDirection = 0;
+            rb.gravityScale = gravityWhileFalling;
+            
+            // Disable movement temporarily after taking damage
+            StartCoroutine(DisableMovementTemporarily());
+        }
+    }
+    
+    private void Die()
+    {
+        // Reset health to maximum
+        currentHealth = maxHealth;
+        
+        // Respawn at checkpoint or starting position
+        Vector3 respawnPosition = hasCheckpoint ? checkpointPosition : startingPosition;
+        transform.position = respawnPosition;
+        rb.linearVelocity = Vector2.zero;
+        SetDiggableCollisionEnabled(true);
         
         // Reset all states and timers
         ResetAllMovementStates();
@@ -1005,6 +1067,11 @@ public class PlayerController_pif : MonoBehaviour
         facingDirection = 1;
         wallDirection = 0;
         rb.gravityScale = gravityWhileFalling;
+        
+        // Disable movement temporarily after dying
+        StartCoroutine(DisableMovementTemporarily());
+        
+        Debug.Log($"Player died and respawned at: {respawnPosition}");
     }
     
     private void ResetAllMovementStates()
@@ -1086,13 +1153,87 @@ public class PlayerController_pif : MonoBehaviour
     
     private void LogLastGroundedPosition()
     {
-        // Update and log the last grounded position if currently grounded and safe from damaging objects
-        if (isGrounded && IsSafeFromDamagingObjects())
+        // Update and log the last grounded position only when firmly grounded and stable
+        if (IsFirmlyGrounded() && IsSafeFromDamagingObjects())
         {
             lastGroundedPosition = transform.position;
-            // Uncomment the line below to enable console logging (for debugging)
-            // Debug.Log($"Last grounded position updated: {lastGroundedPosition}");
         }
+    }
+    
+    private bool IsFirmlyGrounded()
+    {
+        // Check multiple conditions to ensure player is firmly grounded:
+        // 1. Basic grounded check
+        if (!isGrounded)
+            return false;
+            
+        // 2. Player must not be in transitional movement states
+        if (isJumping || isFastFalling || isWallClinging || isDigging || isDigPhasing || isDigExiting)
+            return false;
+            
+        // 3. Vertical velocity should be near zero or downward (not moving upward)
+        if (rb.linearVelocity.y > 0.1f)
+            return false;
+            
+        // 4. Player should have been grounded for at least a brief moment (stability check)
+        if (!wasGroundedLastFrame)
+            return false;
+            
+        // 5. Check if the center of the player's collider is in contact with ground
+        return HasStrongGroundContact();
+    }
+    
+    private bool HasStrongGroundContact()
+    {
+        // Check if the center of the player's collider is in direct contact with ground
+        Vector2 playerCenter = (Vector2)transform.position;
+        
+        // Get the bounds of the player's active collider
+        Bounds colliderBounds = normalCollider.enabled ? normalCollider.bounds : glidingCollider.bounds;
+        
+        // Calculate the bottom center point of the player's collider
+        Vector2 bottomCenter = new Vector2(playerCenter.x, colliderBounds.min.y);
+        
+        // Perform a small raycast downward from the bottom center to check for ground contact
+        float rayDistance = 0.1f; // Small distance to check for immediate ground contact
+        RaycastHit2D hit = Physics2D.Raycast(bottomCenter, Vector2.down, rayDistance);
+        
+        if (hit.collider != null)
+        {
+            // Check if this is a ground surface
+            if (EnvironmentTracker.IsGroundSurface(hit.collider))
+            {
+                // Check if the normal is pointing upward (indicating standing on top)
+                if (EnvironmentTracker.IsUpwardFacing(hit.normal))
+                {
+                    Debug.Log("Player center is firmly grounded");
+                    return true;
+                }
+            }
+        }
+        
+        // Additional check: use a small overlap circle at the bottom center
+        // This catches cases where the raycast might miss due to collider edge alignment
+        float overlapRadius = 0.05f;
+        Vector2 overlapCenter = new Vector2(playerCenter.x, colliderBounds.min.y - overlapRadius);
+        Collider2D[] overlappingColliders = Physics2D.OverlapCircleAll(overlapCenter, overlapRadius);
+        
+        foreach (Collider2D collider in overlappingColliders)
+        {
+            // Skip the player's own colliders
+            if (collider == normalCollider || collider == glidingCollider)
+                continue;
+                
+            if (EnvironmentTracker.IsGroundSurface(collider))
+            {
+                // For overlap detection, we assume the player is standing on top if the overlap is at the bottom
+                Debug.Log("Player center overlap detected with ground");
+                return true;
+            }
+        }
+        
+        Debug.Log("Player center is not firmly grounded");
+        return false;
     }
     
     private bool IsSafeFromDamagingObjects()
@@ -1436,9 +1577,15 @@ public class PlayerController_pif : MonoBehaviour
         DeactivateGlide();
         isFastFalling = false;
         isWallClinging = false;
-        isDigging = false;
-        isDigPhasing = false;
-        isDigExiting = false;
+        
+        // Properly end digging states and restore collision
+        if (isDigging || isDigPhasing || isDigExiting)
+        {
+            isDigging = false;
+            isDigPhasing = false;
+            isDigExiting = false;
+            SetDiggableCollisionEnabled(true);
+        }
         
         // Stop spraying
         if (isSpraying)
@@ -1468,6 +1615,10 @@ public class PlayerController_pif : MonoBehaviour
     public void EnableMovement()
     {
         movementDisabled = false;
+        
+        // Ensure diggable collision is properly reset when movement is re-enabled
+        SetDiggableCollisionEnabled(true);
+        
         Debug.Log("Player movement enabled");
     }
     
@@ -1478,4 +1629,54 @@ public class PlayerController_pif : MonoBehaviour
     {
         return movementDisabled;
     }
+    
+    /// <summary>
+    /// Temporarily disables movement after respawning
+    /// </summary>
+    private IEnumerator DisableMovementTemporarily()
+    {
+        DisableMovement();
+        Debug.Log($"Movement disabled for {respawnMovementDisableDuration} seconds after respawn");
+        yield return new WaitForSeconds(respawnMovementDisableDuration);
+        EnableMovement();
+        Debug.Log("Movement re-enabled after respawn");
+    }
+    
+    /// <summary>
+    /// Sets a new checkpoint position for respawn
+    /// </summary>
+    /// <param name="position">The checkpoint position</param>
+    public void SetCheckpoint(Vector3 position)
+    {
+        checkpointPosition = position;
+        hasCheckpoint = true;
+        Debug.Log($"Checkpoint set at position: {position}");
+    }
+    
+    
+    /// <summary>
+    /// Gets the current health value
+    /// </summary>
+    /// <returns>Current health points</returns>
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
+    }
+    
+    /// <summary>
+    /// Gets the maximum health value
+    public int GetMaxHealth()
+    {
+        return maxHealth;
+    }
+    
+    /// <summary>
+    /// Restores player health to maximum (used by checkpoints)
+    /// </summary>
+    public void RestoreFullHealth()
+    {
+        currentHealth = maxHealth;
+        Debug.Log($"Health restored to full: {currentHealth}/{maxHealth}");
+    }
+    
 }

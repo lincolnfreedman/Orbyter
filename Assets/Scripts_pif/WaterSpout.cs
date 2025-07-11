@@ -33,6 +33,10 @@ public class WaterSpout : MonoBehaviour
         if (IsPlayerCollider(other))
             return;
             
+        // Ignore collision with EventTrigger layer objects
+        if (other.gameObject.layer == LayerMask.NameToLayer("EventTrigger"))
+            return;
+            
         isTouchingSomething = true;
     }
 
@@ -47,6 +51,10 @@ public class WaterSpout : MonoBehaviour
         
         // Ignore collision with the player
         if (IsPlayerCollider(other))
+            return;
+            
+        // Ignore collision with EventTrigger layer objects
+        if (other.gameObject.layer == LayerMask.NameToLayer("EventTrigger"))
             return;
             
         isTouchingSomething = true;
@@ -76,7 +84,7 @@ public class WaterSpout : MonoBehaviour
             
             int count = spoutCollider.Overlap(filter, overlapping);
             
-            // Check if any overlapping colliders are not the player and not Fire objects
+            // Check if any overlapping colliders are not the player and not Fire objects and not EventTrigger objects
             isTouchingSomething = false;
             for (int i = 0; i < count; i++)
             {
@@ -86,6 +94,12 @@ public class WaterSpout : MonoBehaviour
                     if (overlapping[i].gameObject.layer == LayerMask.NameToLayer("Fire"))
                     {
                         Destroy(overlapping[i].gameObject);
+                        continue;
+                    }
+                    
+                    // Ignore EventTrigger layer objects
+                    if (overlapping[i].gameObject.layer == LayerMask.NameToLayer("EventTrigger"))
+                    {
                         continue;
                     }
                     
@@ -154,6 +168,12 @@ public class WaterSpout : MonoBehaviour
                     if (overlapping[i].gameObject.layer == LayerMask.NameToLayer("Fire"))
                     {
                         Destroy(overlapping[i].gameObject);
+                        continue;
+                    }
+                    
+                    // Ignore EventTrigger layer objects
+                    if (overlapping[i].gameObject.layer == LayerMask.NameToLayer("EventTrigger"))
+                    {
                         continue;
                     }
                     
