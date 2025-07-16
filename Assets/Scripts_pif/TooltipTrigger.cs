@@ -32,104 +32,19 @@ public class TooltipTrigger : MonoBehaviour
     [Tooltip("The input action name required to dismiss the tooltip (e.g., 'Interact', 'Jump')")]
     public string dismissInputAction;
     
-    // Static reference to track which tooltip currently has an active dismiss action
-    private static TooltipTrigger currentActiveTooltip = null;
-    
     private bool hasTriggered = false;
     private bool playerInTrigger = false;
-    private float displayTimer = 0f;
-    private InputAction dismissAction;
-    private PlayerInput playerInput;
 
     void Start()
     {
-        // Validate setup
-        ValidateSetup();
-        
-        // Ensure tooltip UI starts hidden
+        // Initialize the static tooltip system with this trigger's UI elements
         if (tooltipUI != null)
         {
-            tooltipUI.SetActive(false);
-        }
-    }
-    
-    void Update()
-    {
-        // Handle timed tooltips
-        if (displayDuration > 0f && tooltipUI != null && tooltipUI.activeSelf)
-        {
-            displayTimer -= Time.deltaTime;
-            if (displayTimer <= 0f)
-            {
-                HideTooltip();
-            }
-        }
-        
-        // Handle input-based dismissal
-        if (requireInputToDismiss && tooltipUI != null && tooltipUI.activeSelf && dismissAction != null)
-        {
-            if (dismissAction.triggered)
-            {
-                HideTooltip();
-            }
-        }
-    }
-    
-    private void SetupInputAction()
-    {
-        // Try to find player input in the scene
-        if (playerInput == null)
-        {
-            GameObject playerObject = GameObject.FindGameObjectWithTag(triggerTag);
-            if (playerObject != null)
-            {
-                playerInput = playerObject.GetComponent<PlayerInput>();
-            }
-        }
-        
-        // Set up the dismiss input action
-        if (playerInput != null && !string.IsNullOrEmpty(dismissInputAction))
-        {
-            try
-            {
-                dismissAction = playerInput.actions[dismissInputAction];
-                if (dismissAction == null)
-                {
-                    Debug.LogWarning($"TooltipTrigger on {gameObject.name}: Input action '{dismissInputAction}' not found!");
-                }
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"TooltipTrigger on {gameObject.name}: Failed to set up input action '{dismissInputAction}': {e.Message}");
-            }
+            TooltipSystem.Initialize(tooltipUI, textComponent);
         }
         else
         {
-            Debug.LogWarning($"TooltipTrigger on {gameObject.name}: Could not find PlayerInput component for dismiss functionality!");
-        }
-    }
-
-    private void ValidateSetup()
-    {
-        if (tooltipUI == null)
-        {
-            Debug.LogWarning($"TooltipTrigger on {gameObject.name}: No tooltip UI assigned!");
-            return;
-        }
-        
-        // If no text component is assigned, try to find one
-        if (textComponent == null)
-        {
-            textComponent = tooltipUI.GetComponent<TextMeshProUGUI>();
-            if (textComponent == null)
-            {
-                textComponent = tooltipUI.GetComponentInChildren<TextMeshProUGUI>();
-            }
-        }
-        
-        if (textComponent == null)
-        {
-            Debug.LogWarning($"TooltipTrigger on {gameObject.name}: No TextMeshProUGUI component found in tooltip UI!");
+            Debug.LogWarning($"TooltipTrigger on {gameObject.name}: No tooltip UI assigned! Please assign a tooltip UI element.");
         }
         
         if (string.IsNullOrEmpty(tooltipText))
@@ -156,7 +71,7 @@ public class TooltipTrigger : MonoBehaviour
             // Only hide if not using timed display AND not requiring input to dismiss
             if (displayDuration <= 0f && !requireInputToDismiss)
             {
-                HideTooltip();
+                TooltipSystem.HideTooltip();
             }
         }
     }
@@ -169,67 +84,232 @@ public class TooltipTrigger : MonoBehaviour
             return;
         }
         
-        if (tooltipUI == null)
-        {
-            Debug.LogError($"TooltipTrigger on {gameObject.name}: Cannot show tooltip - no UI element assigned!");
-            return;
-        }
-        
-        // Set the text if we have a text component
-        if (textComponent != null && !string.IsNullOrEmpty(tooltipText))
-        {
-            textComponent.text = tooltipText;
-        }
-        
-        // Show the tooltip UI
-        tooltipUI.SetActive(true);
-        
-        // Set up dismiss input action if required
-        if (requireInputToDismiss)
-        {
-            // Clear any previously active tooltip's dismiss action
-            if (currentActiveTooltip != null && currentActiveTooltip != this)
-            {
-                currentActiveTooltip.ClearDismissAction();
-            }
-            
-            // Set this as the current active tooltip
-            currentActiveTooltip = this;
-            SetupInputAction();
-        }
-        
-        // Set up timer if using timed display
-        if (displayDuration > 0f)
-        {
-            displayTimer = displayDuration;
-        }
+        // Show tooltip through static system
+        TooltipSystem.ShowTooltip(
+            tooltipText, 
+            displayDuration, 
+            requireInputToDismiss, 
+            dismissInputAction,
+            triggerTag
+        );
         
         // Mark as triggered
         hasTriggered = true;
+    }
+}
+
+public static class TooltipSystem
+{
+    private static GameObject tooltipUI;
+    private static TextMeshProUGUI textComponent;
+    private static bool isInitialized = false;
+    private static float displayTimer = 0f;
+    private static bool requiresInput = false;
+    private static InputAction dismissAction;
+    private static PlayerInput playerInput;
+    private static TooltipUpdater updater;
+    
+    public static void Initialize(GameObject uiElement, TextMeshProUGUI textComp)
+    {
+        if (isInitialized) return;
         
-        Debug.Log($"TooltipTrigger on {gameObject.name}: Showing tooltip - '{tooltipText}'");
+        tooltipUI = uiElement;
+        textComponent = textComp;
+        
+        // Validate setup
+        if (tooltipUI == null)
+        {
+            Debug.LogError("TooltipSystem: No tooltip UI assigned! Please assign a tooltip UI element.");
+            return;
+        }
+        
+        // If no text component provided, try to find one
+        if (textComponent == null && tooltipUI != null)
+        {
+            textComponent = tooltipUI.GetComponent<TextMeshProUGUI>();
+            if (textComponent == null)
+            {
+                textComponent = tooltipUI.GetComponentInChildren<TextMeshProUGUI>();
+            }
+        }
+        
+        if (textComponent == null)
+        {
+            Debug.LogError("TooltipSystem: No TextMeshProUGUI component found! Please assign a text component or ensure your tooltip UI has one.");
+            return;
+        }
+        
+        // Make tooltip UI persist across scenes
+        // First check if there's already a Canvas with DontDestroyOnLoad
+        Canvas tooltipCanvas = tooltipUI.GetComponentInParent<Canvas>();
+        if (tooltipCanvas != null)
+        {
+            // Check if this canvas is already marked as DontDestroyOnLoad
+            GameObject rootObject = tooltipCanvas.gameObject;
+            while (rootObject.transform.parent != null)
+            {
+                rootObject = rootObject.transform.parent.gameObject;
+            }
+            
+            // Mark the root canvas object as DontDestroyOnLoad
+            Object.DontDestroyOnLoad(rootObject);
+            Debug.Log($"TooltipSystem: Marked {rootObject.name} as DontDestroyOnLoad for cross-scene persistence.");
+        }
+        else
+        {
+            // If tooltip UI is not under a canvas, just mark the tooltip itself
+            Object.DontDestroyOnLoad(tooltipUI);
+            Debug.Log($"TooltipSystem: Marked {tooltipUI.name} as DontDestroyOnLoad for cross-scene persistence.");
+        }
+        
+        // Ensure tooltip starts hidden
+        tooltipUI.SetActive(false);
+        
+        // Set up updater component
+        updater = tooltipUI.GetComponent<TooltipUpdater>();
+        if (updater == null)
+        {
+            updater = tooltipUI.AddComponent<TooltipUpdater>();
+        }
+        
+        isInitialized = true;
+        Debug.Log("TooltipSystem: Successfully initialized with custom UI elements and cross-scene persistence.");
     }
     
-    private void HideTooltip()
+    public static void ShowTooltip(string text, float duration, bool requireInput, string inputAction, string playerTag)
+    {
+        if (!isInitialized)
+        {
+            Debug.LogError("TooltipSystem: System not initialized! Make sure at least one TooltipTrigger has valid UI elements assigned.");
+            return;
+        }
+        
+        // Check if UI elements still exist (in case of scene changes or manual deletion)
+        if (tooltipUI == null || textComponent == null)
+        {
+            Debug.LogWarning("TooltipSystem: UI elements were destroyed. Resetting system - please reinitialize in the new scene.");
+            ResetSystem();
+            return;
+        }
+        
+        // Set the text
+        if (textComponent != null)
+        {
+            textComponent.text = text;
+        }
+        
+        // Show the tooltip
+        tooltipUI.SetActive(true);
+        
+        // Set up timing and input
+        if (duration > 0f)
+        {
+            displayTimer = duration;
+        }
+        else
+        {
+            displayTimer = 0f;
+        }
+        
+        requiresInput = requireInput;
+        
+        // Set up input action if required
+        if (requireInput && !string.IsNullOrEmpty(inputAction))
+        {
+            SetupInputAction(inputAction, playerTag);
+        }
+        
+        Debug.Log($"TooltipSystem: Showing tooltip - '{text}'");
+    }
+    
+    public static void HideTooltip()
     {
         if (tooltipUI != null)
         {
             tooltipUI.SetActive(false);
-            Debug.Log($"TooltipTrigger on {gameObject.name}: Hiding tooltip");
+            Debug.Log("TooltipSystem: Hiding tooltip");
         }
         
-        // Clear dismiss action when tooltip is hidden
-        ClearDismissAction();
+        // Clear input action
+        dismissAction = null;
+        displayTimer = 0f;
+        requiresInput = false;
     }
     
-    private void ClearDismissAction()
+    public static void ResetSystem()
     {
+        tooltipUI = null;
+        textComponent = null;
+        isInitialized = false;
+        displayTimer = 0f;
+        requiresInput = false;
         dismissAction = null;
-        
-        // Clear static reference if this was the active tooltip
-        if (currentActiveTooltip == this)
+        playerInput = null;
+        updater = null;
+        Debug.Log("TooltipSystem: System reset. Will need to be reinitialized in the new scene.");
+    }
+    
+    public static bool IsInitialized()
+    {
+        return isInitialized && tooltipUI != null && textComponent != null;
+    }
+    
+    private static void SetupInputAction(string inputAction, string playerTag)
+    {
+        // Try to find player input (search again in case of scene change)
+        GameObject playerObject = GameObject.FindGameObjectWithTag(playerTag);
+        if (playerObject != null)
         {
-            currentActiveTooltip = null;
+            playerInput = playerObject.GetComponent<PlayerInput>();
         }
+        
+        // Set up the dismiss input action
+        if (playerInput != null)
+        {
+            try
+            {
+                dismissAction = playerInput.actions[inputAction];
+                if (dismissAction == null)
+                {
+                    Debug.LogWarning($"TooltipSystem: Input action '{inputAction}' not found!");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"TooltipSystem: Failed to set up input action '{inputAction}': {e.Message}");
+            }
+        }
+    }
+    
+    // Called by TooltipUpdater component
+    public static void Update()
+    {
+        if (!isInitialized || tooltipUI == null || !tooltipUI.activeSelf) return;
+        
+        // Handle timed tooltips
+        if (displayTimer > 0f)
+        {
+            displayTimer -= Time.deltaTime;
+            if (displayTimer <= 0f)
+            {
+                HideTooltip();
+                return;
+            }
+        }
+        
+        // Handle input-based dismissal
+        if (requiresInput && dismissAction != null && dismissAction.triggered)
+        {
+            HideTooltip();
+        }
+    }
+}
+
+// Helper component to call TooltipSystem.Update()
+public class TooltipUpdater : MonoBehaviour
+{
+    void Update()
+    {
+        TooltipSystem.Update();
     }
 }

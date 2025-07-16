@@ -46744,6 +46744,121 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &166220756
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 166220759}
+  - component: {fileID: 166220758}
+  - component: {fileID: 166220757}
+  - component: {fileID: 166220760}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &166220757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166220756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bc71d561353cf645a8bdb0ceed8f16e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  abilityName: Spray
+  triggerTag: Player
+  triggerOnce: 1
+--- !u!61 &166220758
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166220756}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0
+--- !u!4 &166220759
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166220756}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -42.07, y: 3.37, z: 0}
+  m_LocalScale: {x: 13.34, y: 13.34, z: 13.34}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &166220760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166220756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffd9a14ff87087a41b23db61c0d0c371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipText: Press x and any direction to Galaxsea Spray
+  tooltipUI: {fileID: 0}
+  textComponent: {fileID: 0}
+  triggerTag: Player
+  triggerOnce: 1
+  displayDuration: 0
+  requireInputToDismiss: 1
+  dismissInputAction: Spray
 --- !u!1 &202738486
 GameObject:
   m_ObjectHideFlags: 0
@@ -47080,7 +47195,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 6719601117010791360, guid: 21386daf52f75c84395f7eb125e9e836, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -47192,105 +47307,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &366542287
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 366542288}
-  - component: {fileID: 366542290}
-  - component: {fileID: 366542289}
-  m_Layer: 8
-  m_Name: Dig Tooltip
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &366542288
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 366542287}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -49.9, y: 1.7, z: 0}
-  m_LocalScale: {x: 1, y: 39, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 384180552}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &366542289
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 366542287}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffd9a14ff87087a41b23db61c0d0c371, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tooltipText: Press z to dash and dig into climbable walls
-  tooltipUI: {fileID: 827284723}
-  textComponent: {fileID: 1015935306}
-  triggerTag: Player
-  triggerOnce: 1
-  displayDuration: 0
-  requireInputToDismiss: 1
-  dismissInputAction: Dig
---- !u!61 &366542290
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 366542287}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
 --- !u!1 &384180551
 GameObject:
   m_ObjectHideFlags: 0
@@ -47323,8 +47339,7 @@ Transform:
   - {fileID: 1569017773}
   - {fileID: 529304764}
   - {fileID: 934619299}
-  - {fileID: 366542288}
-  - {fileID: 1695161844}
+  - {fileID: 1767284876}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &400996255
@@ -47380,16 +47395,123 @@ MonoBehaviour:
   worldGrid: {fileID: 1304641672}
   playerIcon: {fileID: 602314187}
   objectiveIcon: {fileID: 0}
-  mapScale: 1.5
+  mapScale: 1.8
   centerOnPlayer: 1
-  mapOffset: {x: 375, y: 210}
+  mapOffset: {x: 726, y: 424}
   terrainColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   terrainBoxPrefab: {fileID: 0}
   maxTileGroupSize: 8
   terrainBoxGap: 0
   limitDisplayRange: 1
-  maxDisplayRangeX: 120
-  maxDisplayRangeY: 67.5
+  maxDisplayRangeX: 80
+  maxDisplayRangeY: 45
+--- !u!1 &426872279
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 426872282}
+  - component: {fileID: 426872281}
+  - component: {fileID: 426872280}
+  m_Layer: 0
+  m_Name: CinemachineCamera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &426872280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 426872279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 886251e9a18ece04ea8e61686c173e1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CameraDistance: 10
+  DeadZoneDepth: 0
+  Composition:
+    ScreenPosition: {x: 0, y: 0}
+    DeadZone:
+      Enabled: 0
+      Size: {x: 0.2, y: 0.2}
+    HardLimits:
+      Enabled: 0
+      Size: {x: 0.8, y: 0.8}
+      Offset: {x: 0, y: 0}
+  CenterOnActivate: 1
+  TargetOffset: {x: 1.5, y: 0, z: 0}
+  Damping: {x: 0.75, y: 2, z: 0}
+  Lookahead:
+    Enabled: 1
+    Time: 0.05
+    Smoothing: 1
+    IgnoreY: 1
+--- !u!114 &426872281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 426872279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Priority:
+    Enabled: 0
+    m_Value: 0
+  OutputChannel: 1
+  StandbyUpdate: 2
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
+  Target:
+    TrackingTarget: {fileID: 1049980936}
+    LookAtTarget: {fileID: 0}
+    CustomLookAtTarget: 0
+  Lens:
+    FieldOfView: 34
+    OrthographicSize: 18
+    NearClipPlane: 0.3
+    FarClipPlane: 1000
+    Dutch: 0
+    ModeOverride: 0
+    PhysicalProperties:
+      GateFit: 2
+      SensorSize: {x: 21.946, y: 16.002}
+      LensShift: {x: 0, y: 0}
+      FocusDistance: 10
+      Iso: 200
+      ShutterSpeed: 0.005
+      Aperture: 16
+      BladeCount: 5
+      Curvature: {x: 2, y: 11}
+      BarrelClipping: 0.25
+      Anamorphism: 0
+  BlendHint: 0
+--- !u!4 &426872282
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 426872279}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -189.76, y: -27.12, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -47522,7 +47644,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: -189.76, y: -27.12, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -47538,12 +47660,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 519420028}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b6510373a12598b41b683c403f6668df, type: 3}
+  m_Script: {fileID: 11500000, guid: 72ece51f2901e7445ab60da3685d6b5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: 1049980933}
-  facingBias: 2
-  biasLerpSpeed: 2
+  ShowDebugText: 0
+  ShowCameraFrustum: 1
+  IgnoreTimeScale: 0
+  WorldUpOverride: {fileID: 0}
+  ChannelMask: -1
+  UpdateMethod: 2
+  BlendUpdateMethod: 1
+  LensModeOverride:
+    Enabled: 0
+    DefaultMode: 2
+  DefaultBlend:
+    Style: 1
+    Time: 2
+    CustomCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  CustomBlends: {fileID: 0}
 --- !u!1 &529304763
 GameObject:
   m_ObjectHideFlags: 0
@@ -47590,8 +47729,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tooltipText: Fall near a climbable wall to cling to it
-  tooltipUI: {fileID: 827284723}
-  textComponent: {fileID: 1015935306}
+  tooltipUI: {fileID: 0}
+  textComponent: {fileID: 0}
   triggerTag: Player
   triggerOnce: 1
   displayDuration: 0
@@ -48174,7 +48313,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 619304864b7c5c64a900a7f74ace4af2, type: 3}
   m_Resource: {fileID: 8300000, guid: 619304864b7c5c64a900a7f74ace4af2, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.6
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -48697,8 +48836,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tooltipText: Hold space while airborne to glide
-  tooltipUI: {fileID: 827284723}
-  textComponent: {fileID: 1015935306}
+  tooltipUI: {fileID: 0}
+  textComponent: {fileID: 0}
   triggerTag: Player
   triggerOnce: 1
   displayDuration: 0
@@ -48934,7 +49073,13 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 71d354f54b1859f47858008e2f70fbd4, type: 3}
   - {fileID: 8300000, guid: eff421ea5d219ed4bb4ae0f0bea7a6d2, type: 3}
   - {fileID: 8300000, guid: d4d018530bdc190479bef3fbd3639da4, type: 3}
+  - {fileID: 8300000, guid: de1eb34510d959242ab081b738b382fb, type: 3}
+  - {fileID: 8300000, guid: 2b7b0631d16865445b4cbcca4e231d22, type: 3}
+  - {fileID: 8300000, guid: 1f80908e4d4a7b24aadf2337f3db202d, type: 3}
+  - {fileID: 8300000, guid: 6d80dad3cffc0f34eb18657b216da793, type: 3}
+  - {fileID: 8300000, guid: 9b3e7d305d4d3fd4b8029b6246d0ca4a, type: 3}
   audioSource: {fileID: 362211255}
+  oneShotAudioSource: {fileID: 0}
 --- !u!61 &1049980926 stripped
 BoxCollider2D:
   m_CorrespondingSourceObject: {fileID: 8269349131244181039, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
@@ -48974,7 +49119,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 1.0509615, y: -0.05531311}
+  m_Offset: {x: 1.3255, y: -0.231802}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -48984,7 +49129,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 6.9838467, y: 6.32}
+  m_Size: {x: 3.963898, y: 4.555103}
   m_EdgeRadius: 0
 --- !u!114 &1049980932 stripped
 MonoBehaviour:
@@ -49048,8 +49193,14 @@ MonoBehaviour:
   sprayCooldown: 1
   safeDistanceFromDamaging: 3
   maxHealth: 3
-  currentHealth: 0
+  currentHealth: 3
+  respawnMovementDisableDuration: 1
   facingDirection: 1
+--- !u!4 &1049980936 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7920601683855934490, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
+  m_PrefabInstance: {fileID: 6158705291143175032}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1210645511 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2958262985454349548, guid: 52571f68872914e24837210513edea1d, type: 3}
@@ -53640,8 +53791,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tooltipText: Press C to pull
-  tooltipUI: {fileID: 827284723}
-  textComponent: {fileID: 1015935306}
+  tooltipUI: {fileID: 0}
+  textComponent: {fileID: 0}
   triggerTag: Player
   triggerOnce: 0
   displayDuration: 0
@@ -53805,7 +53956,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.5, y: 2.5, z: 2.5}
+  m_LocalScale: {x: 2.6, y: 2.6, z: 2.6}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1707068353}
@@ -53887,105 +54038,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1673245658}
   m_CullTransparentMesh: 1
---- !u!1 &1695161843
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1695161844}
-  - component: {fileID: 1695161846}
-  - component: {fileID: 1695161845}
-  m_Layer: 8
-  m_Name: Spray Tooltip
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1695161844
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1695161843}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 51.69, y: 19.7, z: 0}
-  m_LocalScale: {x: 1, y: 13.9, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 384180552}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1695161845
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1695161843}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffd9a14ff87087a41b23db61c0d0c371, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tooltipText: Press x to spray
-  tooltipUI: {fileID: 827284723}
-  textComponent: {fileID: 1015935306}
-  triggerTag: Player
-  triggerOnce: 1
-  displayDuration: 0
-  requireInputToDismiss: 1
-  dismissInputAction: Spray
---- !u!61 &1695161846
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1695161843}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
 --- !u!1 &1707068352
 GameObject:
   m_ObjectHideFlags: 0
@@ -54088,6 +54140,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainCam: {fileID: 519420031}
   parallaxEffect: 1
+  offset: {x: 57.9, y: 0}
 --- !u!1 &1749498714 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7262066351540048079, guid: 52571f68872914e24837210513edea1d, type: 3}
@@ -54118,6 +54171,105 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerController: {fileID: 1049980933}
   dialogueRunner: {fileID: 1749498716}
+--- !u!1 &1767284875
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1767284876}
+  - component: {fileID: 1767284878}
+  - component: {fileID: 1767284877}
+  m_Layer: 8
+  m_Name: Fall Tooltip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1767284876
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1767284875}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 17.1, y: 3.8, z: 0}
+  m_LocalScale: {x: 1, y: 19.6, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 384180552}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1767284877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1767284875}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffd9a14ff87087a41b23db61c0d0c371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipText: Hold down arrow to fast fall or slide down walls
+  tooltipUI: {fileID: 0}
+  textComponent: {fileID: 0}
+  triggerTag: Player
+  triggerOnce: 1
+  displayDuration: 0
+  requireInputToDismiss: 1
+  dismissInputAction: FastFall
+--- !u!61 &1767284878
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1767284875}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0
 --- !u!1 &1897381490
 GameObject:
   m_ObjectHideFlags: 0
@@ -57476,19 +57628,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8269349131244181039, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
       propertyPath: m_Size.x
-      value: 6.9838467
+      value: 3.963898
       objectReference: {fileID: 0}
     - target: {fileID: 8269349131244181039, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
       propertyPath: m_Size.y
-      value: 10.937462
+      value: 9.996185
       objectReference: {fileID: 0}
     - target: {fileID: 8269349131244181039, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
       propertyPath: m_Offset.x
-      value: 1.0509615
+      value: 1.266663
       objectReference: {fileID: 0}
     - target: {fileID: 8269349131244181039, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
       propertyPath: m_Offset.y
-      value: -0.05531311
+      value: -0.72205
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4318865354483485339, guid: 2e59b3a7bb7e4a744b62b796198ed2ff, type: 3}
@@ -57579,6 +57731,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 1304641674}
   - {fileID: 619394802}
+  - {fileID: 426872282}
   - {fileID: 519420032}
   - {fileID: 681774892}
   - {fileID: 362211257}
@@ -57596,3 +57749,4 @@ SceneRoots:
   - {fileID: 721496078}
   - {fileID: 529628432}
   - {fileID: 861985481}
+  - {fileID: 166220759}

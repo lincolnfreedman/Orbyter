@@ -43,7 +43,19 @@ public class GameManager : MonoBehaviour
             if (paused)
             {
                 paused = false;
-                adventureLog.SetActive(false);
+                
+                // Use the AdventureLog's close method to play close SFX
+                AdventureLog logScript = adventureLog.GetComponent<AdventureLog>();
+                if (logScript != null)
+                {
+                    logScript.CloseAdventureLog();
+                }
+                else
+                {
+                    // Fallback if no script found
+                    adventureLog.SetActive(false);
+                }
+                
                 Time.timeScale = 1f;
             }
             else if (!paused)

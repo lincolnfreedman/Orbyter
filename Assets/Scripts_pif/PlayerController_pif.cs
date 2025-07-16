@@ -193,7 +193,6 @@ public class PlayerController_pif : MonoBehaviour
         if (jumpAction.triggered)
         {
             jumpBufferTimer = jumpBufferTime;
-            player.PlayerSFX(1);
         }
 
         if (jumpBufferTimer > 0f)
@@ -312,6 +311,12 @@ public class PlayerController_pif : MonoBehaviour
     {
         UpdateSprayCooldown();
         
+        // Check if spray ability is unlocked
+        if (!AbilityManager.IsAbilityUnlocked("Spray"))
+        {
+            return; // Exit early if spray is not unlocked
+        }
+        
         // Reset spray flag if grounded or wall clinging (allows immediate re-use)
         if (isGrounded || isWallClinging)
         {
@@ -335,6 +340,9 @@ public class PlayerController_pif : MonoBehaviour
 
             // Spawn water spout
             SpawnWaterSpout(sprayDirection);
+            
+            // Play spray sound effect
+            player.PlayerSFX(4);
 
             // Forcefully remove horizontal velocity when spraying horizontally
             if (Mathf.Abs(sprayDirection.x) > 0.1f && Mathf.Abs(sprayDirection.y) < 0.1f)
@@ -443,6 +451,12 @@ public class PlayerController_pif : MonoBehaviour
     {
         UpdateDigCooldown();
         
+        // Check if dig ability is unlocked
+        if (!AbilityManager.IsAbilityUnlocked("Dig"))
+        {
+            return; // Exit early if dig is not unlocked
+        }
+        
         if (CanStartDig())
         {
             StartDig(moveInput);
@@ -466,11 +480,20 @@ public class PlayerController_pif : MonoBehaviour
     
     private bool CanStartDig()
     {
-        return digAction.triggered && !isSpraying && !digUsedThisJump && digCooldownTimer <= 0f;
+        bool canDig = digAction.triggered && !isSpraying && !digUsedThisJump && digCooldownTimer <= 0f;
+        
+        if (digAction.triggered)
+        {
+            Debug.Log($"Dig action triggered. Can dig: {canDig}");
+            Debug.Log($"isSpraying: {isSpraying}, digUsedThisJump: {digUsedThisJump}, digCooldownTimer: {digCooldownTimer}");
+        }
+        
+        return canDig;
     }
     
     private void StartDig(Vector2 moveInput)
     {
+        Debug.Log("StartDig called - about to play jump SFX");
         SetDiggableCollisionEnabled(false);
         
         float horizontal = moveAction.ReadValue<Vector2>().x;
@@ -479,6 +502,11 @@ public class PlayerController_pif : MonoBehaviour
         Vector2 digDirection = GetDigDirection(digInput);
         
         rb.linearVelocity = digDirection * digForce;
+        
+        // Play jump sound effect as one-shot when dig begins (won't be interrupted)
+        Debug.Log("Playing jump SFX for dig start using PlayOneShot");
+        player.PlayerSFXOneShot(1);
+        Debug.Log("Jump SFX one-shot call completed");
         
         digTimer = digDuration;
         digCooldownTimer = digCooldown;
@@ -507,6 +535,8 @@ public class PlayerController_pif : MonoBehaviour
         if (touchingClimbable && !isDigPhasing)
         {
             isDigPhasing = true;
+            // Start looping dig phase sound effect
+            player.PlayerSFX(5);
         }
         else if (!touchingClimbable && isDigPhasing)
         {
@@ -522,6 +552,9 @@ public class PlayerController_pif : MonoBehaviour
         isDigExiting = true;
         digExitVelocity = rb.linearVelocity;
         digExitTimer = digTimer;
+        
+        // Stop dig phase sound effect when exiting dig phase
+        player.StopSFX();
     }
     
     private void ProcessDigTimer()
@@ -565,6 +598,9 @@ public class PlayerController_pif : MonoBehaviour
         isDigging = false;
         isDigExiting = false;
         SetDiggableCollisionEnabled(true);
+        
+        // Stop dig phase sound effect when dig ends completely
+        player.StopSFX();
     }
     
     private Vector2 GetDigDirection(Vector2 digInput)
@@ -737,6 +773,9 @@ public class PlayerController_pif : MonoBehaviour
         jumpBufferTimer = 0f;
         coyoteTimer = 0f;
         leftGroundByJumping = true;
+        
+        // Play jump sound effect when wall jump executes
+        player.PlayerSFX(1);
     }
     
     
@@ -768,12 +807,15 @@ public class PlayerController_pif : MonoBehaviour
         {
             isFastFalling = false;
         }
-
+        //dd
         glidingCollider.enabled = true;
         normalCollider.enabled = false;
         isGliding = true;
         isJumping = false;
         glideTimer = 0f;
+        
+        // Start glide sound effect loop
+        player.PlayerSFX(3);
         
         if (rb.linearVelocity.y < 0)
         {
@@ -1009,6 +1051,9 @@ public class PlayerController_pif : MonoBehaviour
     }
     private void DeactivateGlide()
     {
+        // Stop glide sound effect immediately
+        player.StopSFX();
+        
         glideTimer = 0f;
         currentGlideSpeed = 0f;
         glidingCollider.enabled = false; // Disable gliding collider
@@ -1302,6 +1347,9 @@ public class PlayerController_pif : MonoBehaviour
             leftGroundByJumping = true;
             isJumping = true;
             jumpTimeCounter = 0f;
+            
+            // Play jump sound effect when jump actually executes
+            player.PlayerSFX(1);
         }
     }
     
@@ -1364,13 +1412,16 @@ public class PlayerController_pif : MonoBehaviour
     
     private void UpdateSpriteFlipping()
     {
-        if (rb.linearVelocity.x > 0)
+        // Use facingDirection field instead of velocity for more consistent facing
+        if (facingDirection > 0)
         {
-            spriteRenderer.flipX = false;
+            // Facing right - normal rotation
+            transform.rotation = Quaternion.Euler(0, 0, 0);
         }
-        else if (rb.linearVelocity.x < 0)
+        else if (facingDirection < 0)
         {
-            spriteRenderer.flipX = true;
+            // Facing left - rotate 180 degrees on Y axis
+            transform.rotation = Quaternion.Euler(0, 180, 0);
         }
     }
 
@@ -1457,11 +1508,6 @@ public class PlayerController_pif : MonoBehaviour
                 }
                 
                 // Apply acceleration in opposite direction of where the spout was placed
-                // Examples:
-                // - Spout placed down (0, -1) -> accelerate player up (0, 1)
-                // - Spout placed up (0, 1) -> accelerate player down (0, -1)
-                // - Spout placed left (-1, 0) -> accelerate player right (1, 0)
-                // - Spout placed right (1, 0) -> accelerate player left (-1, 0)
                 Vector2 accelerationDirection = -spoutDirection;
                 
                 // Check current velocity in the acceleration direction to prevent exceeding max velocity
