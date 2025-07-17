@@ -81,6 +81,8 @@ public class PlayerController_pif : MonoBehaviour
     private bool hasCheckpoint = false;
     [Tooltip("Duration of movement disable after respawning")]
     public float respawnMovementDisableDuration = 1f;
+    [Tooltip("Duration of invulnerability frames after getting hit")]
+    public float invulnerabilityFrames = 1.5f;
     
     private Rigidbody2D rb;
     private bool isGrounded;
@@ -93,6 +95,7 @@ public class PlayerController_pif : MonoBehaviour
     private int sprayDirection = 0; //0 = Down, 1 = Up, 2 = Horizontal
     private bool isDigging = false;
     private bool isDigPhasing = false;
+    private bool isInvulnerable = false;
     public int facingDirection = 1;
     
     // Timers and counters
@@ -140,6 +143,7 @@ public class PlayerController_pif : MonoBehaviour
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private Player_pip player;
+    private ParticleSystem deathParticles;
 
     // Public property to access interact action from other scripts
     public InputAction InteractAction => interactAction;
@@ -152,6 +156,7 @@ public class PlayerController_pif : MonoBehaviour
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         player = GetComponent<Player_pip>();
+        deathParticles = GetComponentInChildren<ParticleSystem>();
         moveAction = playerInput.actions["Move"];
         verticalAction = playerInput.actions["Vertical"];
         jumpAction = playerInput.actions["Jump"];
@@ -998,7 +1003,7 @@ public class PlayerController_pif : MonoBehaviour
         // Check for damaging objects first
         if (collision.gameObject.CompareTag("Damaging"))
         {
-            TakeDamage();
+            StartCoroutine(DeathAnimation());
             return; // Exit early to prevent other collision logic
         }
         
@@ -1013,7 +1018,7 @@ public class PlayerController_pif : MonoBehaviour
         // Check for damaging objects first
         if (collision.gameObject.CompareTag("Damaging"))
         {
-            TakeDamage();
+            StartCoroutine(DeathAnimation());
             return; // Exit early to prevent other collision logic
         }
         
@@ -1037,7 +1042,7 @@ public class PlayerController_pif : MonoBehaviour
         // Check for damaging objects
         if (other.CompareTag("Damaging"))
         {
-            TakeDamage();
+            StartCoroutine(DeathAnimation());
         }
     }
 
@@ -1046,7 +1051,7 @@ public class PlayerController_pif : MonoBehaviour
         // Check for damaging objects
         if (other.CompareTag("Damaging"))
         {
-            TakeDamage();
+            StartCoroutine(DeathAnimation());
         }
     }
     private void DeactivateGlide()
@@ -1063,10 +1068,7 @@ public class PlayerController_pif : MonoBehaviour
 
 
     private void TakeDamage()
-    {
-        // Decrease health
-        currentHealth--;
-        
+    {   
         // Check if player should die
         if (currentHealth <= 0)
         {
@@ -1089,7 +1091,7 @@ public class PlayerController_pif : MonoBehaviour
             rb.gravityScale = gravityWhileFalling;
             
             // Disable movement temporarily after taking damage
-            StartCoroutine(DisableMovementTemporarily());
+            // StartCoroutine(DisableMovementTemporarily());
         }
     }
     
@@ -1114,10 +1116,36 @@ public class PlayerController_pif : MonoBehaviour
         rb.gravityScale = gravityWhileFalling;
         
         // Disable movement temporarily after dying
-        StartCoroutine(DisableMovementTemporarily());
+        // StartCoroutine(DisableMovementTemporarily());
         
         Debug.Log($"Player died and respawned at: {respawnPosition}");
     }
+
+    private IEnumerator DeathAnimation()
+    {
+        // Play Animation and disable sprite visibility
+        deathParticles.Play();
+        spriteRenderer.color = Color.clear;
+
+        // Decrease health if not invulnerable
+        if (!isInvulnerable)
+        {
+            currentHealth--;
+        }
+
+        // Give player invulnerability
+        isInvulnerable = true;
+
+        StartCoroutine(DisableMovementTemporarily());
+        yield return new WaitForSeconds(invulnerabilityFrames);
+
+        // Remove palyer invulnerability after a certain amount of time
+        isInvulnerable = false;
+
+        // Reenable sprite visibility and process respawn logic
+        spriteRenderer.color = Color.white;
+        TakeDamage();
+    } 
     
     private void ResetAllMovementStates()
     {

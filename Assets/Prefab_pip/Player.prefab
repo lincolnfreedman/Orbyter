@@ -10,13 +10,16 @@ GameObject:
   m_Component:
   - component: {fileID: 7920601683855934490}
   - component: {fileID: 4000201519558213770}
-  - component: {fileID: 4318865354483485339}
   - component: {fileID: 9044056499424679122}
   - component: {fileID: 5072675042849662806}
   - component: {fileID: 8269349131244181039}
+  - component: {fileID: 1898562045067890289}
+  - component: {fileID: 8507060515328746517}
+  - component: {fileID: 3458814722872705501}
+  - component: {fileID: 4254676394744559003}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -77,10 +80,10 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 660116951
+  m_SortingLayer: 4
   m_SortingOrder: 0
-  m_Sprite: {fileID: 4575768770670752584, guid: 38377ce2c1080a645a7c0085ea269aab, type: 3}
+  m_Sprite: {fileID: -7842666502197522759, guid: 38377ce2c1080a645a7c0085ea269aab, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -91,36 +94,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4318865354483485339
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2148492097612193081}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b47405dd9b7e065479d4345cbeb0f533, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 14
-  jumpForce: 15
-  jumpBufferTime: 0.1
-  maxJumpTime: 0.4
-  jumpReleaseMultiplier: 0.5
-  coyoteTime: 0.15
-  glideAcceleration: 48
-  maxGlideSpeed: 24
-  gravityWhileJumping: 2.5
-  gravityWhileFalling: 4
-  gravityWhileGliding: 0.25
-  gravityWhileFastFalling: 15
-  terminalVelocity: -25
-  wallKickOffDuration: 0.3
-  sprayForce: 10
-  sprayCooldown: 1
-  sprayDuration: 0.35
-  facingDirection: 1
 --- !u!50 &9044056499424679122
 Rigidbody2D:
   serializedVersion: 5
@@ -212,7 +185,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 1.2666626, y: -0.7220535}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -222,5 +195,145 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 2.78, y: 3.7466667}
+  m_Size: {x: 3.9638977, y: 9.996185}
   m_EdgeRadius: 0
+--- !u!95 &1898562045067890289
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2148492097612193081}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: f544e02c7e2069843a2ef80d8100d10d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8507060515328746517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2148492097612193081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb72448183c54924fa895c1ba3bf2dcf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sfx:
+  - {fileID: 8300000, guid: 71d354f54b1859f47858008e2f70fbd4, type: 3}
+  - {fileID: 8300000, guid: eff421ea5d219ed4bb4ae0f0bea7a6d2, type: 3}
+  - {fileID: 8300000, guid: d4d018530bdc190479bef3fbd3639da4, type: 3}
+  audioSource: {fileID: 0}
+  oneShotAudioSource: {fileID: 0}
+--- !u!61 &3458814722872705501
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2148492097612193081}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 6200000, guid: 15a7024c8cf45f647bc47d54d0cc3221, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 1.3255005, y: -0.23180199}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 12.8, y: 12.8}
+    newSize: {x: 4.17, y: 5.62}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 3.963898, y: 4.5551033}
+  m_EdgeRadius: 0
+--- !u!114 &4254676394744559003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2148492097612193081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b47405dd9b7e065479d4345cbeb0f533, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalCollider: {fileID: 8269349131244181039}
+  glidingCollider: {fileID: 3458814722872705501}
+  diggableLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  moveSpeed: 14
+  jumpForce: 15
+  jumpBufferTime: 0.1
+  maxJumpTime: 0.4
+  jumpReleaseMultiplier: 0.5
+  coyoteTime: 0.1
+  glideAcceleration: 48
+  maxGlideSpeed: 24
+  glideVelocityMultiplier: 0.25
+  minimumGlideHeight: 2
+  gravityWhileJumping: 2.5
+  gravityWhileFalling: 4
+  gravityWhileGliding: 0.35
+  terminalVelocity: -25
+  glideTerminalVelocity: -4
+  fastFallVelocity: 12
+  wallKickOffDuration: 0.2
+  waterSpoutPrefab: {fileID: 8063990229303028272, guid: b7b96b971109f7043935f57a9660e80e, type: 3}
+  sprayDuration: 0.5
+  sprayAcceleration: 40
+  maxSprayVelocity: 25
+  horizontalSprayDeceleration: 0
+  sprayInstantBoost: 15
+  sprayStartVelocityMultiplier: 0.3
+  horizontalSprayOffset: 2
+  verticalSprayOffset: 3
+  digForce: 20
+  digDuration: 0.26
+  digCooldown: 1
+  digAcceleration: 40
+  maxDigVelocity: 25
+  sprayCooldown: 1
+  safeDistanceFromDamaging: 3
+  maxHealth: 3
+  currentHealth: 3
+  respawnMovementDisableDuration: 1
+  facingDirection: 1
