@@ -1,7 +1,9 @@
 ﻿title: Start
 ---
 <<disable_movement>>
+<<scarf_talk>>
 Scarf: Huh?! The siren's going off!
+<<scarf_talk>>
 Scarf: It hasn't done that in years! Let's see what's going on…
 <<enable_movement>>
 ===
@@ -9,7 +11,9 @@ Scarf: It hasn't done that in years! Let's see what's going on…
 title: AIIntro
 ---
 <<disable_movement>>
+<<scarf_talk>>
 Scarf: What the … You can't be Sirius!
+<<scarf_talk>>
 Scarf: AI?! Was draining Earth not enough…? I should avoid getting caught.
 <<enable_movement>>
 ===
@@ -17,7 +21,9 @@ Scarf: AI?! Was draining Earth not enough…? I should avoid getting caught.
 title: GonnaCrash
 ---
 <<disable_movement>>
+<<scarf_talk>>
 Scarf: Uh oh... I don't think I can fix this.
+<<scarf_talk>>
 Scarf: I need to open the escape pod before I crash!
 <<enable_movement>>
 ===
@@ -25,7 +31,9 @@ Scarf: I need to open the escape pod before I crash!
 title: CrashLanded
 ---
 <<disable_movement>>
+<<scarf_talk>>
 Scarf: Where am I?
+<<scarf_talk>>
 Scarf: I see some smoke in the distance… My ship might be over there!
 <<enable_movement>>
 ===
@@ -33,7 +41,9 @@ Scarf: I see some smoke in the distance… My ship might be over there!
 title: Fire
 ---
 <<disable_movement>>
+<<scarf_talk>>
 Scarf: (Cough) This is more than a crash landing… The forest is on fire!
+<<scarf_talk>>
 Scarf: I can't breathe, I need to get out of here!
 <<enable_movement>>
 ===

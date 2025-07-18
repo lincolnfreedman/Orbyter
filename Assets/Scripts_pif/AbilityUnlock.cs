@@ -24,6 +24,19 @@ public class AbilityUnlock : MonoBehaviour
                 return;
             }
             
+            // Get the player's SFX component to play powerup sound
+            Player_pip playerSFX = other.GetComponent<Player_pip>();
+            if (playerSFX != null)
+            {
+                // Play powerup collected sound effect (index 8)
+                playerSFX.PlayerSFXOneShot(8);
+                Debug.Log("AbilityUnlock: Playing powerup collected SFX");
+            }
+            else
+            {
+                Debug.LogWarning("AbilityUnlock: Could not find Player_pip component for SFX");
+            }
+            
             // Unlock the ability
             AbilityManager.UnlockAbility(abilityName);
             
@@ -67,8 +80,8 @@ public static class AbilityManager
         unlockedAbilities["Vertical"] = true;
         
         // These abilities start locked
-        unlockedAbilities["Spray"] = false;
-        unlockedAbilities["Dig"] = false;
+        unlockedAbilities["Spray"] = true;
+        unlockedAbilities["Dig"] = true;
         
         Debug.Log("AbilityManager: Initialized with default abilities");
     }

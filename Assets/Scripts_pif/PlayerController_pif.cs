@@ -480,7 +480,15 @@ public class PlayerController_pif : MonoBehaviour
     private void UpdateDigCooldown()
     {
         if (digCooldownTimer > 0f)
+        {
             digCooldownTimer -= Time.deltaTime;
+            
+            // Reset digUsedThisJump when cooldown expires (allows re-use even if still airborne)
+            if (digCooldownTimer <= 0f)
+            {
+                digUsedThisJump = false;
+            }
+        }
     }
     
     private bool CanStartDig()
@@ -736,8 +744,9 @@ public class PlayerController_pif : MonoBehaviour
         sprayUsedThisJump = false;
         digUsedThisJump = false;
         
-        // Reset spray cooldown when starting wall cling
+        // Reset spray and dig cooldowns when starting wall cling
         sprayCooldownTimer = 0f;
+        digCooldownTimer = 0f;
         
         player.PlayerSFX(2);
     }
@@ -1001,7 +1010,7 @@ public class PlayerController_pif : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // Check for damaging objects first
-        if (collision.gameObject.CompareTag("Damaging"))
+        if (collision.gameObject.CompareTag("Damaging") && !isInvulnerable)
         {
             StartCoroutine(DeathAnimation());
             return; // Exit early to prevent other collision logic
@@ -1015,13 +1024,7 @@ public class PlayerController_pif : MonoBehaviour
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        // Check for damaging objects first
-        if (collision.gameObject.CompareTag("Damaging"))
-        {
-            StartCoroutine(DeathAnimation());
-            return; // Exit early to prevent other collision logic
-        }
-        
+        // Only check for grounded state in Stay - damage is handled in Enter only to prevent double triggers
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Climbable"))
         {
             isGrounded = EnvironmentTracker.IsStandingOnSurface(rb, isDigPhasing);
@@ -1039,8 +1042,8 @@ public class PlayerController_pif : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Check for damaging objects
-        if (other.CompareTag("Damaging"))
+        // Check for damaging objects - only trigger if not invulnerable
+        if (other.CompareTag("Damaging") && !isInvulnerable)
         {
             StartCoroutine(DeathAnimation());
         }
@@ -1048,11 +1051,8 @@ public class PlayerController_pif : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D other)
     {
-        // Check for damaging objects
-        if (other.CompareTag("Damaging"))
-        {
-            StartCoroutine(DeathAnimation());
-        }
+        // Don't check for damage in Stay to prevent double triggers
+        // Damage is only handled in Enter when not invulnerable
     }
     private void DeactivateGlide()
     {
@@ -1069,13 +1069,15 @@ public class PlayerController_pif : MonoBehaviour
 
     private void TakeDamage()
     {   
-        // Check if player should die
+        // Check if player should die (health is 0 or below)
         if (currentHealth <= 0)
         {
+            Debug.Log("Player died - respawning at checkpoint");
             Die();
         }
         else
         {
+            Debug.Log($"Player took damage but survived - resetting to last grounded position. Health: {currentHealth}/{maxHealth}");
             // Take damage but don't die - reset to last grounded position
             transform.position = lastGroundedPosition;
             rb.linearVelocity = Vector2.zero;
@@ -1089,9 +1091,6 @@ public class PlayerController_pif : MonoBehaviour
             facingDirection = 1;
             wallDirection = 0;
             rb.gravityScale = gravityWhileFalling;
-            
-            // Disable movement temporarily after taking damage
-            // StartCoroutine(DisableMovementTemporarily());
         }
     }
     
@@ -1123,28 +1122,41 @@ public class PlayerController_pif : MonoBehaviour
 
     private IEnumerator DeathAnimation()
     {
-        // Play Animation and disable sprite visibility
+        // Immediately set invulnerability to prevent double triggers
+        isInvulnerable = true;
+        
+        // Stop all movement immediately
+        rb.linearVelocity = Vector2.zero;
+        
+        // Disable movement to prevent glitchy behavior during death animation
+        movementDisabled = true;
+        
+        // Play death particles and hide sprite
         deathParticles.Play();
         spriteRenderer.color = Color.clear;
 
-        // Decrease health if not invulnerable
-        if (!isInvulnerable)
-        {
-            currentHealth--;
-        }
+        // Decrease health (this happens immediately, not after the animation)
+        currentHealth--;
+        
+        Debug.Log($"Player took damage. Health: {currentHealth}/{maxHealth}");
 
-        // Give player invulnerability
-        isInvulnerable = true;
-
-        StartCoroutine(DisableMovementTemporarily());
+        // Wait for the death animation to complete
         yield return new WaitForSeconds(invulnerabilityFrames);
 
-        // Remove palyer invulnerability after a certain amount of time
-        isInvulnerable = false;
-
-        // Reenable sprite visibility and process respawn logic
+        // Re-enable sprite visibility
         spriteRenderer.color = Color.white;
+        
+        // Process damage/death logic
         TakeDamage();
+        
+        // Re-enable movement after a brief delay to prevent immediate re-collision
+        yield return new WaitForSeconds(0.1f);
+        movementDisabled = false;
+        
+        // Remove invulnerability last
+        isInvulnerable = false;
+        
+        Debug.Log("Death animation complete, player is now vulnerable again");
     } 
     
     private void ResetAllMovementStates()
@@ -1190,14 +1202,58 @@ public class PlayerController_pif : MonoBehaviour
 
     private void HandleAnimations()
     {
+        // Always update velocity for movement animations (but it will only be used if no higher priority state is active)
         animator.SetFloat("Velocity", Mathf.Abs(rb.linearVelocity.x));
-        animator.SetBool("isGrounded", isGrounded);
-        animator.SetBool("isGliding", isGliding);
-        animator.SetBool("isJumping", isJumping);
-        animator.SetBool("isWallClinging", isWallClinging);
-        animator.SetBool("isDigging", isDigging);
-        //animator.SetBool("isDigPhasing", isDigPhasing);
-        animator.SetBool("isSpraying", isSpraying);
+        
+        // Animation priority system (highest to lowest priority):
+        // 1. Digging (highest priority - overrides everything)
+        // 2. Spraying (high priority - overrides movement states)
+        // 3. Wall Clinging (medium-high priority)
+        // 4. Gliding (medium priority)
+        // 5. Jumping (lower priority)
+        // 6. Movement/Idle (lowest priority - handled by Velocity parameter and isGrounded)
+        
+        // Reset all state booleans first
+        animator.SetBool("isDigging", false);
+        animator.SetBool("isSpraying", false);
+        animator.SetBool("isWallClinging", false);
+        animator.SetBool("isGliding", false);
+        animator.SetBool("isJumping", false);
+        animator.SetBool("isGrounded", false);
+        
+        // Set the highest priority active state
+        if (isDigging)
+        {
+            // Digging has highest priority - overrides everything
+            animator.SetBool("isDigging", true);
+        }
+        else if (isSpraying)
+        {
+            // Spraying has high priority - overrides movement states
+            // Do NOT set isGrounded when spraying to prevent idle/movement animations
+            animator.SetBool("isSpraying", true);
+        }
+        else if (isWallClinging)
+        {
+            // Wall clinging has medium-high priority
+            animator.SetBool("isWallClinging", true);
+        }
+        else if (isGliding)
+        {
+            // Gliding has medium priority
+            animator.SetBool("isGliding", true);
+        }
+        else if (isJumping)
+        {
+            // Jumping has lower priority
+            animator.SetBool("isJumping", true);
+        }
+        else
+        {
+            // Only set grounded state if no higher priority states are active
+            // This ensures movement/idle animations only play when appropriate
+            animator.SetBool("isGrounded", isGrounded);
+        }
     }
 
     private void SetDiggableCollisionEnabled(bool enabled)
@@ -1347,8 +1403,9 @@ public class PlayerController_pif : MonoBehaviour
                 sprayUsedThisJump = false;
                 digUsedThisJump = false;
                 
-                // Reset spray cooldown when becoming grounded
+                // Reset spray and dig cooldowns when becoming grounded
                 sprayCooldownTimer = 0f;
+                digCooldownTimer = 0f;
             }
         }
         else
