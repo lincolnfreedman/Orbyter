@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class MainMenu_pip : MonoBehaviour
 {
@@ -32,6 +33,9 @@ public class MainMenu_pip : MonoBehaviour
     private Slider BGMSlider;
     [SerializeField]
     private Button extrasBackButton;
+    [SerializeField]
+    private bool isTitleScreen = true;
+    private GameObject lastSelected;
 
 
     private CurrentScreen currentScreen;
@@ -42,12 +46,26 @@ public class MainMenu_pip : MonoBehaviour
         currentScreen = CurrentScreen.Main;
 
         LoadPlayerPrefs();
+        
+        // Set initial selection based on whether this is the title screen
+        if (!isTitleScreen)
+        {
+            controlsButton.Select();
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        GameObject current = EventSystem.current.currentSelectedGameObject;
+        if (current != null)
+        {
+            lastSelected = current;
+        }
+        else if (lastSelected != null)
+        {
+            EventSystem.current.SetSelectedGameObject(lastSelected);
+        }
     }
 
     private void LoadPlayerPrefs()
@@ -99,6 +117,10 @@ public class MainMenu_pip : MonoBehaviour
 
     public void CloseSettingsMenu()
     {
+        // Do nothing if this is not the title screen
+        if (!isTitleScreen)
+            return;
+            
         fade.SetActive(false);
         settingsMenu.SetActive(false);
         currentScreen = CurrentScreen.Main;

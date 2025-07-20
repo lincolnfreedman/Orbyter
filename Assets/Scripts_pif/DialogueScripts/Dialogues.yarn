@@ -1,49 +1,64 @@
 ﻿title: Start
 ---
-<<disable_movement>>
+<<enable_dialogue>>
 <<scarf_talk>>
 Scarf: Huh?! The siren's going off!
 <<scarf_talk>>
 Scarf: It hasn't done that in years! Let's see what's going on…
-<<enable_movement>>
+<<disable_dialogue>>
 ===
 
 title: AIIntro
 ---
-<<disable_movement>>
+<<enable_dialogue>>
 <<scarf_talk>>
 Scarf: What the … You can't be Sirius!
 <<scarf_talk>>
-Scarf: AI?! Was draining Earth not enough…? I should avoid getting caught.
-<<enable_movement>>
+<<highlight_text>>
+Scarf: AI?! Was draining Earth not enough…?
+Scarf: I should avoid getting caught.
+<<disable_dialogue>>
 ===
 
 title: GonnaCrash
 ---
-<<disable_movement>>
+<<enable_dialogue>>
 <<scarf_talk>>
 Scarf: Uh oh... I don't think I can fix this.
 <<scarf_talk>>
 Scarf: I need to open the escape pod before I crash!
-<<enable_movement>>
+<<disable_dialogue>>
 ===
 
 title: CrashLanded
 ---
-<<disable_movement>>
+<<enable_dialogue>>
 <<scarf_talk>>
 Scarf: Where am I?
 <<scarf_talk>>
 Scarf: I see some smoke in the distance… My ship might be over there!
-<<enable_movement>>
+<<disable_dialogue>>
 ===
 
 title: Fire
 ---
-<<disable_movement>>
+<<enable_dialogue>>
 <<scarf_talk>>
 Scarf: (Cough) This is more than a crash landing… The forest is on fire!
 <<scarf_talk>>
 Scarf: I can't breathe, I need to get out of here!
-<<enable_movement>>
+<<disable_dialogue>>
+===
+
+title: Samuel
+---
+<<enable_dialogue>>
+<<show_samuel_default>>
+<<scarf_talk>>
+Scarf: Hey look its samuel
+<<samuel_talk>>
+Samuel: what up bro
+<<show_samuel_happy>>
+Samuel: im so happy lol
+<<disable_dialogue>>
 ===

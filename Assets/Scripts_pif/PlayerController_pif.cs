@@ -345,9 +345,6 @@ public class PlayerController_pif : MonoBehaviour
 
             // Spawn water spout
             SpawnWaterSpout(sprayDirection);
-            
-            // Play spray sound effect
-            player.PlayerSFX(4);
 
             // Forcefully remove horizontal velocity when spraying horizontally
             if (Mathf.Abs(sprayDirection.x) > 0.1f && Mathf.Abs(sprayDirection.y) < 0.1f)
@@ -385,6 +382,9 @@ public class PlayerController_pif : MonoBehaviour
 
             // Disable conflicting movement states when starting spray
             DisableConflictingStatesForSpray();
+            
+            // Play spray sound effect AFTER disabling conflicting states to prevent it from being canceled
+            player.PlayerSFX(4);
         }
         
         // Update spray timer and handle water spout effects
@@ -483,22 +483,27 @@ public class PlayerController_pif : MonoBehaviour
         {
             digCooldownTimer -= Time.deltaTime;
             
-            // Reset digUsedThisJump when cooldown expires (allows re-use even if still airborne)
-            if (digCooldownTimer <= 0f)
+            // Reset digUsedThisJump when cooldown expires while grounded (allows re-use while grounded)
+            if (digCooldownTimer <= 0f && isGrounded)
             {
                 digUsedThisJump = false;
             }
         }
+        
+        // Note: Dig cooldown is reset to 0 in UpdateCoyoteTime() when grounded 
+        // and in StartWallClinging() when wall clinging begins, making dig available again.
+        // Cooldown only applies when dig is used while grounded.
     }
     
     private bool CanStartDig()
     {
-        bool canDig = digAction.triggered && !isSpraying && !digUsedThisJump && digCooldownTimer <= 0f;
+        // Dig is usable if: not used this jump AND (not grounded OR cooldown has expired)
+        bool canDig = digAction.triggered && !isSpraying && !digUsedThisJump && (!isGrounded || digCooldownTimer <= 0f);
         
         if (digAction.triggered)
         {
             Debug.Log($"Dig action triggered. Can dig: {canDig}");
-            Debug.Log($"isSpraying: {isSpraying}, digUsedThisJump: {digUsedThisJump}, digCooldownTimer: {digCooldownTimer}");
+            Debug.Log($"isSpraying: {isSpraying}, digUsedThisJump: {digUsedThisJump}, isGrounded: {isGrounded}, digCooldownTimer: {digCooldownTimer}");
         }
         
         return canDig;
@@ -516,17 +521,24 @@ public class PlayerController_pif : MonoBehaviour
         
         rb.linearVelocity = digDirection * digForce;
         
+        digTimer = digDuration;
+        digUsedThisJump = true;
+        
+        // Only start cooldown if digging while grounded
+        if (isGrounded)
+        {
+            digCooldownTimer = digCooldown;
+        }
+        
+        isDigging = true;
+        
+        // Cancel other movement states BEFORE playing sound to prevent it from being canceled
+        CancelOtherMovementStates();
+        
         // Play jump sound effect as one-shot when dig begins (won't be interrupted)
         Debug.Log("Playing jump SFX for dig start using PlayOneShot");
         player.PlayerSFXOneShot(1);
         Debug.Log("Jump SFX one-shot call completed");
-        
-        digTimer = digDuration;
-        digCooldownTimer = digCooldown;
-        digUsedThisJump = true;
-        isDigging = true;
-        
-        CancelOtherMovementStates();
     }
     
     private void CancelOtherMovementStates()
@@ -661,8 +673,8 @@ public class PlayerController_pif : MonoBehaviour
         // Use a threshold to account for input sensitivity
         float inputThreshold = 0.1f;
 
-        // Check for down input first (highest priority) - but skip if grounded
-        if (Mathf.Abs(sprayInput.y) > inputThreshold && sprayInput.y < 0 && !isGrounded)
+        // Check for down input first (highest priority)
+        if (Mathf.Abs(sprayInput.y) > inputThreshold && sprayInput.y < 0)
         {
             animator.SetInteger("SprayDirection", 0);
             return new Vector2(0f, -1f); // Down
@@ -1583,7 +1595,7 @@ public class PlayerController_pif : MonoBehaviour
             }
             
             // Only apply movement effects if player is NOT grounded
-            if (!isGrounded && isTouching)
+            if (isTouching)
             {
                 // Apply instant boost once when spout first makes contact
                 if (!sprayInstantBoostUsed)
@@ -1692,10 +1704,7 @@ public class PlayerController_pif : MonoBehaviour
     
     // Movement control for dialogue system
     private bool movementDisabled = false;
-    
-    /// <summary>
-    /// Disables all player movement and input actions (for dialogue/cutscenes)
-    /// </summary>
+
     public void DisableMovement()
     {
         movementDisabled = true;
@@ -1739,10 +1748,7 @@ public class PlayerController_pif : MonoBehaviour
         
         Debug.Log("Player movement disabled");
     }
-    
-    /// <summary>
-    /// Re-enables all player movement and input actions
-    /// </summary>
+
     public void EnableMovement()
     {
         movementDisabled = false;
@@ -1752,18 +1758,13 @@ public class PlayerController_pif : MonoBehaviour
         
         Debug.Log("Player movement enabled");
     }
-    
-    /// <summary>
-    /// Check if movement is currently disabled
-    /// </summary>
+
     public bool IsMovementDisabled()
     {
         return movementDisabled;
     }
     
-    /// <summary>
-    /// Temporarily disables movement after respawning
-    /// </summary>
+
     private IEnumerator DisableMovementTemporarily()
     {
         DisableMovement();
@@ -1773,10 +1774,6 @@ public class PlayerController_pif : MonoBehaviour
         Debug.Log("Movement re-enabled after respawn");
     }
     
-    /// <summary>
-    /// Sets a new checkpoint position for respawn
-    /// </summary>
-    /// <param name="position">The checkpoint position</param>
     public void SetCheckpoint(Vector3 position)
     {
         checkpointPosition = position;
@@ -1784,26 +1781,16 @@ public class PlayerController_pif : MonoBehaviour
         Debug.Log($"Checkpoint set at position: {position}");
     }
     
-    
-    /// <summary>
-    /// Gets the current health value
-    /// </summary>
-    /// <returns>Current health points</returns>
     public int GetCurrentHealth()
     {
         return currentHealth;
     }
     
-    /// <summary>
-    /// Gets the maximum health value
     public int GetMaxHealth()
     {
         return maxHealth;
     }
     
-    /// <summary>
-    /// Restores player health to maximum (used by checkpoints)
-    /// </summary>
     public void RestoreFullHealth()
     {
         currentHealth = maxHealth;

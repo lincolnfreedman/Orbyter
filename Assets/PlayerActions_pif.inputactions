@@ -78,9 +78,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Pause",
+                    "name": "Menu",
                     "type": "Button",
                     "id": "1b2f710a-98f8-4add-b1e3-e8705014c240",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "AdventureLog",
+                    "type": "Button",
+                    "id": "d0f314d2-1bbf-488c-bcb6-748c71219d67",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -344,7 +353,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Pause",
+                    "action": "Menu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -355,7 +364,29 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
-                    "action": "Pause",
+                    "action": "Menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "223889cc-12cf-470b-a93f-bf4bb0440c47",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "AdventureLog",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "17dcb2fc-08b5-43ab-b545-ac0e8780248c",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "AdventureLog",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

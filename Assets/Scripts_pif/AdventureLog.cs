@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class AdventureLog : MonoBehaviour
 {
@@ -20,6 +21,8 @@ public class AdventureLog : MonoBehaviour
     private int lastPage;
     
     private Player_pip player;
+    private PlayerInput playerInput;
+    private InputAction moveAction;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -31,6 +34,17 @@ public class AdventureLog : MonoBehaviour
             Debug.LogWarning("Player_pip not found! Adventure log SFX will not work.");
         }
         
+        // Find PlayerInput to access input actions
+        playerInput = FindFirstObjectByType<PlayerInput>();
+        if (playerInput != null)
+        {
+            moveAction = playerInput.actions["Move"];
+        }
+        else
+        {
+            Debug.LogWarning("PlayerInput not found! Adventure log input navigation will not work.");
+        }
+        
         currentPage = 1;
         lastPage = pages.Length/2;
         UpdatePages();
@@ -39,7 +53,26 @@ public class AdventureLog : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // Handle horizontal input for page flipping
+        if (moveAction != null && gameObject.activeInHierarchy)
+        {
+            Vector2 moveInput = moveAction.ReadValue<Vector2>();
+            
+            // Check for horizontal input (with a threshold to avoid accidental triggers)
+            if (Mathf.Abs(moveInput.x) > 0.5f)
+            {
+                if (moveInput.x > 0 && currentPage < lastPage)
+                {
+                    // Right input - next page
+                    NextPage();
+                }
+                else if (moveInput.x < 0 && currentPage > 1)
+                {
+                    // Left input - previous page
+                    PreviousPage();
+                }
+            }
+        }
     }
 
     public void NextPage()

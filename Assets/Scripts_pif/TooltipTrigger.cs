@@ -150,10 +150,7 @@ public static class TooltipSystem
             {
                 rootObject = rootObject.transform.parent.gameObject;
             }
-            
-            // Mark the root canvas object as DontDestroyOnLoad
-            Object.DontDestroyOnLoad(rootObject);
-            Debug.Log($"TooltipSystem: Marked {rootObject.name} as DontDestroyOnLoad for cross-scene persistence.");
+        
         }
         else
         {
