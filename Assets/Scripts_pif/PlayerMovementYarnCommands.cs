@@ -45,6 +45,24 @@ public class PlayerMovementYarnCommands : MonoBehaviour
     public Sprite tuckerTired;
     [Tooltip("Tucker scared sprite")]
     public Sprite tuckerScared;
+    [Tooltip("Jay sing sprite")]
+    public Sprite jaySing;
+    [Tooltip("Jay sigh sprite")]
+    public Sprite jaySigh;
+    [Tooltip("Jay default sprite")]
+    public Sprite jayDefault;
+    [Tooltip("Dusty default sprite")]
+    public Sprite dustyDefault;
+    [Tooltip("Dusty sweat sprite")]
+    public Sprite dustySweat;
+    [Tooltip("Dusty relief sprite")]
+    public Sprite dustyRelief;
+    [Tooltip("Scarf default sprite")]
+    public Sprite scarfDefault;
+    [Tooltip("Scarf nervous sprite")]
+    public Sprite scarfNervous;
+    [Tooltip("Scarf angry sprite")]
+    public Sprite scarfAngry;
     
     [Header("UI References")]
     [Tooltip("Left dialogue sprite UI object")]
@@ -110,6 +128,17 @@ public class PlayerMovementYarnCommands : MonoBehaviour
             dialogueRunner.AddCommandHandler("show_tucker_default", ShowTuckerDefault);
             dialogueRunner.AddCommandHandler("show_tucker_tired", ShowTuckerTired);
             dialogueRunner.AddCommandHandler("show_tucker_scared", ShowTuckerScared);
+            dialogueRunner.AddCommandHandler("show_jay_sing", ShowJaySing);
+            dialogueRunner.AddCommandHandler("show_jay_sigh", ShowJaySigh);
+            dialogueRunner.AddCommandHandler("show_jay_default", ShowJayDefault);
+            dialogueRunner.AddCommandHandler("show_dusty_default", ShowDustyDefault);
+            dialogueRunner.AddCommandHandler("show_dusty_sweat", ShowDustySweat);
+            dialogueRunner.AddCommandHandler("show_dusty_relief", ShowDustyRelief);
+            
+            // Register sprite commands for setting left dialogue sprite (Scarf)
+            dialogueRunner.AddCommandHandler("show_scarf_default", ShowScarfDefault);
+            dialogueRunner.AddCommandHandler("show_scarf_nervous", ShowScarfNervous);
+            dialogueRunner.AddCommandHandler("show_scarf_angry", ShowScarfAngry);
             
             // Register text formatting commands
             dialogueRunner.AddCommandHandler("highlight_text", () => {
@@ -242,6 +271,11 @@ public class PlayerMovementYarnCommands : MonoBehaviour
         if (leftDialogueSprite != null)
         {
             leftDialogueSprite.SetActive(true);
+            // Always set left dialogue sprite to scarfDefault
+            if (scarfDefault != null)
+            {
+                leftDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = scarfDefault;
+            }
         }
         
         if (playerController != null)
@@ -329,6 +363,88 @@ public class PlayerMovementYarnCommands : MonoBehaviour
         {
             rightDialogueSprite.SetActive(true);
             rightDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = tuckerScared;
+        }
+    }
+
+    public void ShowJaySing()
+    {
+        if (jaySing != null && rightDialogueSprite != null)
+        {
+            rightDialogueSprite.SetActive(true);
+            rightDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = jaySing;
+        }
+    }
+
+    public void ShowJaySigh()
+    {
+        if (jaySigh != null && rightDialogueSprite != null)
+        {
+            rightDialogueSprite.SetActive(true);
+            rightDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = jaySigh;
+        }
+    }
+
+    public void ShowJayDefault()
+    {
+        if (jayDefault != null && rightDialogueSprite != null)
+        {
+            rightDialogueSprite.SetActive(true);
+            rightDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = jayDefault;
+        }
+    }
+
+    public void ShowDustyDefault()
+    {
+        if (dustyDefault != null && rightDialogueSprite != null)
+        {
+            rightDialogueSprite.SetActive(true);
+            rightDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = dustyDefault;
+        }
+    }
+
+    public void ShowDustySweat()
+    {
+        if (dustySweat != null && rightDialogueSprite != null)
+        {
+            rightDialogueSprite.SetActive(true);
+            rightDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = dustySweat;
+        }
+    }
+
+    public void ShowDustyRelief()
+    {
+        if (dustyRelief != null && rightDialogueSprite != null)
+        {
+            rightDialogueSprite.SetActive(true);
+            rightDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = dustyRelief;
+        }
+    }
+
+    // Scarf sprite commands for setting left dialogue sprite
+    public void ShowScarfDefault()
+    {
+        if (scarfDefault != null && leftDialogueSprite != null)
+        {
+            leftDialogueSprite.SetActive(true);
+            leftDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = scarfDefault;
+        }
+    }
+
+    public void ShowScarfNervous()
+    {
+        if (scarfNervous != null && leftDialogueSprite != null)
+        {
+            leftDialogueSprite.SetActive(true);
+            leftDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = scarfNervous;
+        }
+    }
+
+    public void ShowScarfAngry()
+    {
+        if (scarfAngry != null && leftDialogueSprite != null)
+        {
+            leftDialogueSprite.SetActive(true);
+            leftDialogueSprite.GetComponent<UnityEngine.UI.Image>().sprite = scarfAngry;
         }
     }
 

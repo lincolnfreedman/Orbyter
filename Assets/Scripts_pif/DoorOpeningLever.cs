@@ -21,10 +21,15 @@ public class DoorOpeningLever : MonoBehaviour
     [Tooltip("Optional audio source for lever sound effects")]
     public AudioSource audioSource;
     
+    [Tooltip("Sprite to switch to when lever is activated")]
+    public Sprite flippedLeverSprite;
+    
     private bool playerInRange = false;
     private bool leverActivated = false;
     private PlayerController_pif playerController;
     private InputAction interactAction;
+    private SpriteRenderer spriteRenderer;
+    private Sprite originalSprite;
 
     void Start()
     {
@@ -32,6 +37,22 @@ public class DoorOpeningLever : MonoBehaviour
         if (door == null)
         {
             Debug.LogWarning($"DoorOpeningLever on {gameObject.name}: No door assigned!");
+        }
+        
+        // Get and cache the sprite renderer and original sprite
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            originalSprite = spriteRenderer.sprite;
+        }
+        else
+        {
+            Debug.LogWarning($"DoorOpeningLever on {gameObject.name}: No SpriteRenderer found!");
+        }
+        
+        if (flippedLeverSprite == null)
+        {
+            Debug.LogWarning($"DoorOpeningLever on {gameObject.name}: No flipped lever sprite assigned!");
         }
     }
 
@@ -116,6 +137,13 @@ public class DoorOpeningLever : MonoBehaviour
             audioSource.Play();
         }
         
+        // Switch to flipped lever sprite
+        if (spriteRenderer != null && flippedLeverSprite != null)
+        {
+            spriteRenderer.sprite = flippedLeverSprite;
+            Debug.Log($"DoorOpeningLever on {gameObject.name}: Switched to flipped lever sprite");
+        }
+        
         // Destroy the door
         Debug.Log($"DoorOpeningLever on {gameObject.name}: Activating lever - destroying door '{door.name}'");
         Destroy(door);
@@ -143,6 +171,13 @@ public class DoorOpeningLever : MonoBehaviour
     {
         leverActivated = false;
         GetComponent<Collider2D>().enabled = true;
+        
+        // Reset to original sprite
+        if (spriteRenderer != null && originalSprite != null)
+        {
+            spriteRenderer.sprite = originalSprite;
+        }
+        
         Debug.Log($"DoorOpeningLever on {gameObject.name}: Lever reset");
     }
     

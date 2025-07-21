@@ -62,3 +62,27 @@ Samuel: what up bro
 Samuel: im so happy lol
 <<disable_dialogue>>
 ===
+
+title: Jay
+---
+<<enable_dialogue>>
+<<show_jay_default>>
+<<jay_talk>>
+Jay: Hello darlin’... Are you okay? Any injuries?
+<<scarf_talk>>
+Scarf: (Huff) I think I’m okay. Thanks!
+<<jay_talk>>
+Jay: You can stay here until the fire dies down.
+<<highlight_text>>
+<<jay_talk>>
+Jay: Hot air rises, so it’s safer underground.
+<<scarf_talk>>
+Scarf: Got it! I’m just looking for my ship so I can go home…
+<<scarf_talk>>
+Scarf: Have you seen anything like that?
+<<jay_talk>>
+Jay: No, sorry… You should find Tucker Tortoise.
+<<jay_talk>>
+Jay: He’s been here the longest. If anyone would know about a ship, he would.
+===
+

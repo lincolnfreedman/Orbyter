@@ -73,6 +73,8 @@ public class PlayerController_pif : MonoBehaviour
     public int maxHealth = 3;
     [Tooltip("Current health points")]
     public int currentHealth;
+    [Tooltip("Number of heart containers collected")]
+    public int heartContainers = 0;
     [Tooltip("Starting position for respawn before any checkpoints")]
     private Vector3 startingPosition;
     [Tooltip("Current checkpoint position for respawn")]
@@ -1144,6 +1146,9 @@ public class PlayerController_pif : MonoBehaviour
         // Disable movement to prevent glitchy behavior during death animation
         movementDisabled = true;
         
+        // Play death sound effect immediately when damage is taken
+        player.PlayerSFXOneShot(9);
+        
         // Play death particles and hide sprite
         deathParticles.Play();
         spriteRenderer.color = Color.clear;
@@ -1171,6 +1176,32 @@ public class PlayerController_pif : MonoBehaviour
         
         Debug.Log("Death animation complete, player is now vulnerable again");
     } 
+   
+    public void AddHeartContainer()
+    {
+        heartContainers++;
+        Debug.Log($"Heart containers collected: {heartContainers}");
+        
+        // Check if we should increase health (every 2 heart containers)
+        if (heartContainers >= 2 && heartContainers % 2 == 0)
+        {
+            // Increase maximum health
+            maxHealth++;
+            
+            // Increase current health (essentially healing the player and giving them the new heart)
+            currentHealth++;
+            
+            Debug.Log($"New heart gained! Max health increased to {maxHealth}, current health: {currentHealth}");
+            
+            // TODO: Update health display UI here when health UI system is implemented
+            // Example: HealthUI.UpdateDisplay(currentHealth, maxHealth);
+        }
+    }
+    
+    public int GetHeartContainers()
+    {
+        return heartContainers;
+    }
     
     private void ResetAllMovementStates()
     {
