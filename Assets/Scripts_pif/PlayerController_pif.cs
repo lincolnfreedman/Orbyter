@@ -575,6 +575,7 @@ public class PlayerController_pif : MonoBehaviour
     {
         isDigPhasing = false;
         isDigExiting = true;
+        digUsedThisJump = false;
         digExitVelocity = rb.linearVelocity;
         digExitTimer = digTimer;
         
