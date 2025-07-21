@@ -10,10 +10,42 @@ public class SceneTransition : MonoBehaviour
     [Tooltip("Delay before transitioning to the new scene")]
     [SerializeField] private float transitionDelay = 0f;
     
+    [Header("Cutscene Settings")]
+    [Tooltip("Cutscene object to enable when transition is triggered")]
+    [SerializeField] private GameObject cutsceneObject;
+    [Tooltip("Music player audio source to mute during cutscene")]
+    [SerializeField] private AudioSource musicPlayer;
+    [Tooltip("Audio source for crash landing sound effect")]
+    [SerializeField] private AudioSource crashLandingAudioSource;
+    [Tooltip("Crash landing sound effect clip")]
+    [SerializeField] private AudioClip crashLandingSound;
+    
     [Header("Debug")]
     [SerializeField] private bool enableDebugLog = true;
     
     private bool hasTriggered = false; // Prevent multiple triggers
+    private PlayerController_pif playerController;
+    private float originalMusicVolume;
+    private Animator cutsceneAnimator;
+    
+    private void Start()
+    {
+        // Store original music volume
+        if (musicPlayer != null)
+        {
+            originalMusicVolume = musicPlayer.volume;
+        }
+        
+        // Get cutscene animator if cutscene object is assigned
+        if (cutsceneObject != null)
+        {
+            cutsceneAnimator = cutsceneObject.GetComponent<Animator>();
+            if (cutsceneAnimator == null)
+            {
+                Debug.LogWarning("SceneTransition: Cutscene object has no Animator component!");
+            }
+        }
+    }
     
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -22,12 +54,80 @@ public class SceneTransition : MonoBehaviour
         {
             hasTriggered = true;
             
+            // Get player controller reference
+            playerController = other.GetComponent<PlayerController_pif>();
+            
             if (enableDebugLog)
             {
-                Debug.Log($"Player entered scene transition trigger. Loading scene in {transitionDelay} seconds...");
+                Debug.Log($"Player entered scene transition trigger. Starting cutscene...");
             }
             
-            // Load the scene with optional delay
+            StartCutscene();
+        }
+    }
+    
+    private void StartCutscene()
+    {
+        // Disable player movement
+        if (playerController != null)
+        {
+            playerController.DisableMovement();
+            if (enableDebugLog)
+            {
+                Debug.Log("Player movement disabled for cutscene");
+            }
+        }
+        
+        // Mute music
+        if (musicPlayer != null)
+        {
+            musicPlayer.volume = 0f;
+            if (enableDebugLog)
+            {
+                Debug.Log("Music volume set to 0");
+            }
+        }
+        
+        // Play crash landing sound effect
+        if (crashLandingAudioSource != null && crashLandingSound != null)
+        {
+            crashLandingAudioSource.PlayOneShot(crashLandingSound);
+            if (enableDebugLog)
+            {
+                Debug.Log("Playing crash landing sound effect");
+            }
+        }
+        
+        // Enable cutscene object
+        if (cutsceneObject != null)
+        {
+            cutsceneObject.SetActive(true);
+            if (enableDebugLog)
+            {
+                Debug.Log("Cutscene object enabled");
+            }
+            
+            // Start monitoring for animation completion
+            if (cutsceneAnimator != null)
+            {
+                StartCoroutine(WaitForAnimationComplete());
+            }
+            else
+            {
+                // If no animator, wait for the transition delay then load scene
+                if (transitionDelay > 0f)
+                {
+                    Invoke(nameof(LoadScene), transitionDelay);
+                }
+                else
+                {
+                    LoadScene();
+                }
+            }
+        }
+        else
+        {
+            // No cutscene object, proceed with normal delay/loading
             if (transitionDelay > 0f)
             {
                 Invoke(nameof(LoadScene), transitionDelay);
@@ -39,8 +139,28 @@ public class SceneTransition : MonoBehaviour
         }
     }
     
+    private System.Collections.IEnumerator WaitForAnimationComplete()
+    {
+        // Wait one frame to ensure animation has started
+        yield return null;
+        
+        // Wait until the current animation state is finished
+        while (cutsceneAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+        {
+            yield return null;
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log("Cutscene animation completed, loading scene...");
+        }
+        
+        LoadScene();
+    }
+    
     private void LoadScene()
     {
+        
         // Use scene index if specified (not -1), otherwise use scene name
         if (sceneIndex >= 0)
         {
