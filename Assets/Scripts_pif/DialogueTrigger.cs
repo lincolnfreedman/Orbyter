@@ -17,7 +17,8 @@ public class DialogueTrigger : MonoBehaviour
     [Tooltip("Tag that can trigger this dialogue (e.g., 'Player')")]
     string triggerTag = "Player";
 
-    private int dialogueStage = 0; // 0 = first, 1 = second, 2 = third, 3 = backtrack
+    private int dialogueStage = 0; // 0 = first, 1 = second, 2 = third
+    private bool backtrackPlayed = false;
     private DialogueRunner dialogueRunner;
 
     void Start()
@@ -47,15 +48,40 @@ public class DialogueTrigger : MonoBehaviour
 
     private void TriggerDialogue()
     {
+        // Check for DialogueRunner
         if (dialogueRunner == null)
         {
             Debug.LogError($"DialogueTrigger on {gameObject.name}: Cannot start dialogue - no DialogueRunner found!");
             return;
         }
 
+        // Prevent triggering if dialogue is already running
         if (dialogueRunner.IsDialogueRunning)
         {
             Debug.Log($"DialogueTrigger on {gameObject.name}: Dialogue already running, skipping trigger.");
+            return;
+        }
+
+        // Check GameManager for forestCleansed
+        var gm = FindFirstObjectByType<GameManager>();
+        if (gm != null && gm.forestCleansed && !backtrackPlayed && !string.IsNullOrEmpty(dialogueBacktrackName))
+        {
+            // Play backtrack dialogue only once when forestCleansed is true
+            try
+            {
+                dialogueRunner.StartDialogue(dialogueBacktrackName);
+                backtrackPlayed = true;
+                Debug.Log($"DialogueTrigger on {gameObject.name}: Started backtrack dialogue node '{dialogueBacktrackName}'");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"DialogueTrigger on {gameObject.name}: Failed to start backtrack dialogue '{dialogueBacktrackName}': {e.Message}");
+            }
+            return;
+        }
+        if (backtrackPlayed)
+        {
+            // No more dialogue should ever play from this trigger
             return;
         }
 
@@ -71,10 +97,6 @@ public class DialogueTrigger : MonoBehaviour
         else if (dialogueStage == 2 && !string.IsNullOrEmpty(dialogue3Name))
         {
             nodeToPlay = dialogue3Name;
-        }
-        else if (dialogueStage == 3 && !string.IsNullOrEmpty(dialogueBacktrackName))
-        {
-            nodeToPlay = dialogueBacktrackName;
         }
         else
         {
@@ -104,5 +126,6 @@ public class DialogueTrigger : MonoBehaviour
     public void ResetTrigger()
     {
         dialogueStage = 0;
+        backtrackPlayed = false;
     }
 }

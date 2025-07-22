@@ -149,6 +149,9 @@ public class PlayerMovementYarnCommands : MonoBehaviour
             dialogueRunner.AddCommandHandler("highlight_text", () => {
                 HighlightText();
             });
+            
+            // Register adventure log commands
+            dialogueRunner.AddCommandHandler<int>("unlock_adventure_page", UnlockAdventurePage);
         }
     }
     
@@ -509,5 +512,29 @@ public class PlayerMovementYarnCommands : MonoBehaviour
         
         // Restore original color
         dialogueText.color = originalColor;
+    }
+
+    /// <summary>
+    /// Unlocks the adventure log page at the specified index.
+    /// Usage in Yarn: <<unlock_adventure_page 3>>
+    /// </summary>
+    public void UnlockAdventurePage(int pageIndex)
+    {
+        if (GameManager.instance != null && GameManager.instance.pagesUnlocked != null)
+        {
+            if (pageIndex >= 0 && pageIndex < GameManager.instance.pagesUnlocked.Length)
+            {
+                GameManager.instance.pagesUnlocked[pageIndex] = true;
+                Debug.Log($"Adventure log page {pageIndex} unlocked via Yarn command.");
+            }
+            else
+            {
+                Debug.LogWarning($"UnlockAdventurePage: pageIndex {pageIndex} is out of bounds.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("UnlockAdventurePage: GameManager or pagesUnlocked array is null.");
+        }
     }
 }

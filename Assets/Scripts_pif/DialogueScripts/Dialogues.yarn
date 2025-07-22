@@ -17,6 +17,8 @@ Scarf: What the … You can't be Sirius!
 <<highlight_text>>
 Scarf: AI?! Was draining Earth not enough…?
 Scarf: I should avoid getting caught.
+<<unlock_adventure_page 0>>
+<<unlock_adventure_page 1>>
 <<disable_dialogue>>
 ===
 
@@ -50,16 +52,74 @@ Scarf: I can't breathe, I need to get out of here!
 <<disable_dialogue>>
 ===
 
+title: FireChase
+---
+<<enable_dialogue>>
+<<enable_fire_chase>>
+<<scarf_talk>>
+Scarf: Oh shoot! The fire's closing in from all sides!
+<<scarf_talk>>
+Scarf: I've gotta find some other way out
+<<disable_dialogue>>
+===
+
 title: Samuel
 ---
 <<enable_dialogue>>
-<<show_samuel_default>>
-<<scarf_talk>>
-Scarf: Hey look its samuel
-<<samuel_talk>>
-Samuel: what up bro
 <<show_samuel_happy>>
-Samuel: im so happy lol
+<<samuel_talk>>
+Samuel Salamander: Hey! You! What’s your name? I’ve never seen someone like you around here!
+
+<<show_scarf_default>>
+<<scarf_talk>>
+Scarf: Name’s Scarf! Just an Orbyter on an unscheduled adventure! What’s yours, lil’ guy?
+
+<<show_samuel_default>>
+<<samuel_talk>>
+Samuel Salamander: Samuel Salamander! 
+<<samuel_talk>>
+Samuel Salamander: I’m helping the Elder Tucker take care of the forest! And nothing’s gonna disrupt it!
+
+<<show_scarf_default>>
+<<scarf_talk>>
+Scarf: I like your determination! Keep it up, kid!
+<<disable_dialogue>>
+===
+
+title: Samuel_2
+---
+<<enable_dialogue>>
+<<show_samuel_happy>>
+<<samuel_talk>>
+<<highlight_text>>
+Samuel Salamander: Pro tip! Use your bandana to cover your face so ya don’t breathe in smoke!
+
+<<show_scarf_default>>
+<<scarf_talk>>
+Scarf: Noted! Thanks, little buddy!
+
+<<show_samuel_default>>
+<<samuel_talk>>
+Samuel Salamander: Any time, stranger!
+<<unlock_adventure_page 4>>
+<<unlock_adventure_page 5>>
+<<disable_dialogue>>
+===
+
+title: Samuel_backtrack
+---
+<<enable_dialogue>>
+<<show_samuel_angry>>
+<<samuel_talk>>
+Samuel Salamander: Back off, fires! Leave our home alone!
+
+<<show_scarf_nervous>>
+<<scarf_talk>>
+Scarf: Step back, lil dude! You’ll hurt yourself!
+
+<<show_samuel_angry>>
+<<samuel_talk>>
+Samuel Salamander: I’ll think of something!
 <<disable_dialogue>>
 ===
 
@@ -68,22 +128,22 @@ title: Jay
 <<enable_dialogue>>
 <<show_jay_default>>
 <<jay_talk>>
-Jay: Hello darlin’... Are you okay? Any injuries?
+Jay Jackrabbit: Hello darlin’... Are you okay? Any injuries?
 <<scarf_talk>>
 Scarf: (Huff) I think I’m okay. Thanks!
 <<jay_talk>>
-Jay: You can stay here until the fire dies down.
+Jay Jackrabbit: You can stay here until the fire dies down.
 <<highlight_text>>
 <<jay_talk>>
-Jay: Hot air rises, so it’s safer underground.
+Jay Jackrabbit: Hot air rises, so it’s safer underground.
 <<scarf_talk>>
 Scarf: Got it! I’m just looking for my ship so I can go home…
 <<scarf_talk>>
 Scarf: Have you seen anything like that?
 <<jay_talk>>
-Jay: No, sorry… You should find Tucker Tortoise.
+Jay Jackrabbit: No, sorry… You should find Tucker Tortoise.
 <<jay_talk>>
-Jay: He’s been here the longest. If anyone would know about a ship, he would.
+Jay Jackrabbit: He’s been here the longest. If anyone would know about a ship, he would.
 <<disable_dialogue>>
 ===
 
@@ -91,22 +151,27 @@ Jay: He’s been here the longest. If anyone would know about a ship, he would.
 title: Jay_2
 ---
 <<enable_dialogue>>
-<<show_scarf_default>>
 <<show_jay_default>>
+<<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: I don’t think I ever caught your name.
+Scarf: I don’t think I ever caught your name.
 <<show_jay_default>>
 <<jay_talk>>
-Jay: Apologies, darlin’. I’m Jay, a Fire Line EMT but a wannabe popstar!
+Jay Jackrabbit: Apologies, darlin’. I’m Jay, a Fire Line EMT but a wannabe popstar!
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: Sounds important! What do you do?
+Scarf: Sounds important! What do you do?
 <<show_jay_sing>>
 <<jay_talk>>
-Jay Jackrabbit: I help folks in a pinch using anything I’ve got in my paws. I’ve been working with plastic in the environment to make splints for the critters here.
+Jay Jackrabbit: I help folks in a pinch using anything I’ve got in my paws.
+<<jay_talk>>
+<<highlight_text>>
+Jay Jackrabbit: I’ve been working with plastic in the environment to make splints for the critters here.
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: That’s impressive! You’re doing a great job, Jay.
+Scarf: That’s impressive! You’re doing a great job, Jay.
+<<unlock_adventure_page 2>>
+<<unlock_adventure_page 3>>
 <<disable_dialogue>>
 ===
 
@@ -119,7 +184,7 @@ Jay Jackrabbit: You came back…!
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: Of course! I would never leave you to deal with this alone. We’re a team!
+Scarf: Of course! I would never leave you to deal with this alone. We’re a team!
 
 <<disable_dialogue>>
 ===
@@ -129,11 +194,15 @@ title: Tucker
 <<enable_dialogue>>
 <<show_tucker_default>>
 <<tucker_talk>>
-Tucker Tortoise: Throughout my 100 years of exploring this forest, I’ve never seen a creature like you. What’s your name, young stranger?
+Tucker Tortoise: Throughout my 100 years of exploring this forest, 
+<<tucker_talk>>
+Tucker Tortoise: I’ve never seen a creature like you. What’s your name, young stranger?
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: The name’s Scarf! And throughout the 100 planets I’ve explored, I never met somebody that old! That’s pretty cool!
+Scarf: The name’s Scarf! And throughout the 100 planets I’ve explored,
+<<scarf_talk>>
+Scarf: I never met somebody that old! That’s pretty cool!
 
 <<show_tucker_tired>>
 <<tucker_talk>>
@@ -145,9 +214,10 @@ Tucker Tortoise: I am Tucker Tortoise. I may be old, but I still take good care 
 title: Tucker_2
 ---
 <<enable_dialogue>>
+<<show_tucker_default>>
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: These tunnels are huge! You know who dug ‘em up?
+Scarf: These tunnels are huge! You know who dug ‘em up?
 
 <<show_tucker_default>>
 <<tucker_talk>>
@@ -155,29 +225,35 @@ Tucker Tortoise: You’re speaking to him right now.
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: WHOA! You, huh? I’m gonna explore every last turn of these!
+Scarf: WHOA! You, huh? I’m gonna explore every last turn of these!
 
 <<show_tucker_default>>
 <<tucker_talk>>
-Tucker Tortoise: Be very curious, but very cautious as well, young stranger. Danger can come any time, anywhere.
-
+Tucker Tortoise: Be very curious, but very cautious as well, young stranger. 
+<<tucker_talk>>
+Tucker Tortoise: Danger can come any time, anywhere.
+<<unlock_adventure_page 6>>
+<<unlock_adventure_page 7>>
 <<disable_dialogue>>
 ===
 
 title: Tucker_3
 ---
 <<enable_dialogue>>
+<<show_tucker_default>>
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: The whole forest is on fire! How do we stop it?!
+Scarf: The whole forest is on fire! How do we stop it?!
 
 <<show_tucker_scared>>
 <<tucker_talk>>
-Tucker Tortoise: You must be patient, little one! I have to find the others. Stay here! The flames will go out soon.
+Tucker Tortoise: You must be patient, little one! I have to find the others. 
+<<tucker_talk>>
+Tucker Tortoise: Stay here! The flames will go out soon.
 
 <<show_scarf_angry>>
 <<scarf_talk>>
-Orbyter: Are you kidding?! I’m going with you! Nobody gets left behind!
+Scarf: Are you kidding?! I’m going with you! Nobody gets left behind!
 
 <<show_tucker_default>>
 <<tucker_talk>>
@@ -195,16 +271,17 @@ Tucker Tortoise: Everyone will remember your bravery, young one.
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: Hey! I’m just doing everything I can to help!
+Scarf: Hey! I’m just doing everything I can to help!
 
 <<show_tucker_tired>>
 <<tucker_talk>>
-Tucker Tortoise: Those words take me back to my youthful days. Like you, I was small, but wanted to help as much as I could.
+Tucker Tortoise: Those words take me back to my youthful days. 
+<<tucker_talk>>
+Tucker Tortoise: Like you, I was small, but wanted to help as much as I could.
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: I can’t imagine how much time has passed since then, but I think you still got it!
-
+Scarf: I can’t imagine how much time has passed since then, but I think you still got it!
 <<disable_dialogue>>
 ===
 
@@ -217,7 +294,7 @@ Molly Mouse: Hi brotato, any chance you got any sweets? I always get a craving w
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: Uh, no, sorry, I don't.
+Scarf: Uh, no, sorry, I don't.
 
 <<show_molly_nervous>>
 <<molly_talk>>
@@ -225,7 +302,7 @@ Molly Mouse: You didn't check your pockets. How do you know you don't have any f
 
 <<show_scarf_angry>>
 <<scarf_talk>>
-Orbyter: I don't need to check my pockets to know I don't have any. I don't even have pockets
+Scarf: I don't need to check my pockets to know I don't have any. I don't even have pockets
 
 <<show_molly_default>>
 <<molly_talk>>
@@ -233,7 +310,7 @@ Molly Mouse: No bruh, I'm talking to who's controlling you.
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: Huh?
+Scarf: Huh?
 
 <<disable_dialogue>>
 ===
@@ -242,16 +319,15 @@ title: Molly_2
 ---
 <<enable_dialogue>>
 <<show_scarf_nervous>>
-<<scarf_talk>>
-Orbyter: You look hurt! Are you ok?
-
 <<show_molly_sad>>
+<<scarf_talk>>
+Scarf: You look hurt! Are you ok?
 <<molly_talk>>
 Molly Mouse: UGH yeah, I'm fine.
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: Then why are you crying?
+Scarf: Then why are you crying?
 
 <<show_molly_nervous>>
 <<molly_talk>>
@@ -259,7 +335,7 @@ Molly Mouse: Because this burn is like so ugly on my head…
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: Well, the wound looks well maintained. Who treated it?
+Scarf: Well, the wound looks well maintained. Who treated it?
 
 <<show_molly_default>>
 <<molly_talk>>
@@ -267,7 +343,7 @@ Molly Mouse: I treated it myself. It's pretty easy once you get the hang of it
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: That's pretty neat! I hope you feel better soon.
+Scarf: That's pretty neat! I hope you feel better soon.
 
 <<show_molly_sad>>
 <<molly_talk>>
@@ -275,7 +351,7 @@ Molly Mouse: It's gonna leave such an ugly scar..
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: You don't know that! Keep your head up!
+Scarf: You don't know that! Keep your head up!
 
 <<show_molly_sad>>
 <<molly_talk>>
@@ -283,8 +359,9 @@ Molly Mouse: No bruh, you don't get it. The artist drew me with a scar under thi
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: Oh, uh.. Sorry to hear that…. I have no clue what's going on.
-
+Scarf: Oh, uh.. Sorry to hear that…. I have no clue what's going on.
+<<unlock_adventure_page 8>>
+<<unlock_adventure_page 9>>
 <<disable_dialogue>>
 ===
 
@@ -297,15 +374,17 @@ Molly Mouse: Hey guy, thanks again!
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: No problem! I'm just doing what anyone would do!
+Scarf: No problem! I'm just doing what anyone would do!
 
 <<show_molly_sad>>
 <<molly_talk>>
-Molly Mouse: Well, not everyone…. You see that guy Chippa Chipmunk? He was like my favourite character…
+Molly Mouse: Well, not everyone… 
+<<molly_talk>>
+Molly Mouse: You see that guy Chippa Chipmunk? He was like my favourite character…
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: Character? What do you mean?
+Scarf: Character? What do you mean?
 
 <<show_molly_sad>>
 <<molly_talk>>
@@ -313,7 +392,7 @@ Molly Mouse: WE ARE NPC’S IN VIDEOGAMES. I CAN'T CONTAIN THE TRUTH ANY LONGER!
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: What’s a videogame? You're weirding me out, I'm out of here…
+Scarf: What’s a videogame? You're weirding me out, I'm out of here…
 
 <<disable_dialogue>>
 ===
@@ -327,7 +406,7 @@ Dusty Dog: Hi there, my name's Dusty. What's yours?
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: Hi there! Name’s Sca-
+Scarf: Hi there! Name’s Sca-
 
 <<show_dusty_default>>
 <<dusty_talk>>
@@ -335,7 +414,7 @@ Dusty Dog: SQUIRREL!
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: What?
+Scarf: What?
 
 <<show_dusty_sweat>>
 <<dusty_talk>>
@@ -343,7 +422,7 @@ Dusty Dog: Oh, sorry, it's a nervous tick I got. Continue what you were saying?
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: It's ok! My name is Sca-
+Scarf: It's ok! My name is Sca-
 
 <<show_dusty_default>>
 <<dusty_talk>>
@@ -355,7 +434,7 @@ Dusty Dog: Sorry….
 
 <<show_scarf_angry>>
 <<scarf_talk>>
-Orbyter: Scarf…
+Scarf: Scarf…
 
 <<disable_dialogue>>
 ===
@@ -369,7 +448,7 @@ Dusty Dog: Hey man, it's a doggy dog world out there. You gotta stay safe.
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: Don't you mean dog-eat-dog?
+Scarf: Don't you mean dog-eat-dog?
 
 <<show_dusty_relief>>
 <<dusty_talk>>
@@ -377,7 +456,7 @@ Dusty Dog: No… I think it's doggy dog. I'm a dog after all. I would know.
 
 <<show_scarf_nervous>>
 <<scarf_talk>>
-Orbyter: I'm pretty sure its dog-eat-dog.
+Scarf: I'm pretty sure its dog-eat-dog.
 
 <<show_dusty_relief>>
 <<dusty_talk>>
@@ -385,20 +464,24 @@ Dusty Dog: I… don’t think so…..
 
 <<show_scarf_angry>>
 <<scarf_talk>>
-Orbyter: …..
+Scarf: …..
 
 <<show_dusty_relief>>
 <<dusty_talk>>
-Dusty Dog: Anyways.. I say that, because these fires are rough. I haven’t seen my family in days.
+Dusty Dog: Anyways.. I say that, because these fires are rough. 
+<<dusty_talk>>
+<<highlight_text>>
+Dusty Dog: I haven’t seen my family in days.
 
 <<show_scarf_angry>>
 <<scarf_talk>>
-Orbyter: Really? I’m sorry to hear that. What do they look like? I’ll keep an eye n’ ear out!
+Scarf: Really? I’m sorry to hear that. What do they look like? I’ll keep an eye n’ ear out!
 
 <<show_dusty_sweat>>
 <<dusty_talk>>
 Dusty Dog: I… I don’t remember. All I remember is a campfire gone rogue. After that, it’s blurry.
-
+<<unlock_adventure_page 10>>
+<<unlock_adventure_page 11>>
 <<disable_dialogue>>
 ===
 
@@ -411,7 +494,7 @@ Dusty Dog: Hey, it's you!! Thanks so much for saving us!.
 
 <<show_scarf_default>>
 <<scarf_talk>>
-Orbyter: Of course, don't mention it!
+Scarf: Of course, don't mention it!
 
 <<show_dusty_sweat>>
 <<dusty_talk>>

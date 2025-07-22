@@ -104,8 +104,8 @@ public static class AbilityManager
         unlockedAbilities["Vertical"] = true;
         
         // These abilities start locked
-        unlockedAbilities["Spray"] = true;
-        unlockedAbilities["Dig"] = true;
+        unlockedAbilities["Spray"] = false;
+        unlockedAbilities["Dig"] = false;
         
         Debug.Log("AbilityManager: Initialized with default abilities");
     }

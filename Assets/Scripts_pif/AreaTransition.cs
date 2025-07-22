@@ -70,6 +70,12 @@ public class AreaTransition : MonoBehaviour
         musicPlayer.resource = bgms[2];
         musicPlayer.Play();
         isForestRevitalized = true;
+
+        GameManager gm = FindFirstObjectByType<GameManager>();
+        if (gm != null)
+        {
+            gm.forestCleansed = true;
+        }
     }
 
     public enum Area

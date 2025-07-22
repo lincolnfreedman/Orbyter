@@ -28,6 +28,9 @@ public class GameManager : MonoBehaviour
     [Tooltip("Whether the heart container in the first scene has been collected")]
     public bool firstSceneHeartContainerCollected = false;
 
+    // Add a public bool to track if the forest has been cleansed
+    public bool forestCleansed = false;
+
     private void Awake()
     {
         if (instance == null)
