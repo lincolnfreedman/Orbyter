@@ -402,6 +402,28 @@
                     "isPartOfComposite": false
                 },
                 {
+                    "name": "",
+                    "id": "bf3f5fa0-d60d-4095-b8b7-55431c7b95a3",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "FastFall",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1eb8d0a1-a720-459d-9c73-d447b28b79e0",
+                    "path": "<Gamepad>/leftStick/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "FastFall",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
                     "name": "1D Axis",
                     "id": "8cba1640-3a8d-4a96-b2c0-92534c2252cb",
                     "path": "1DAxis(whichSideWins=2)",
@@ -462,7 +484,7 @@
                     "path": "<Gamepad>/dpad/down",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": ";Gamepad",
                     "action": "Vertical",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -473,7 +495,40 @@
                     "path": "<Gamepad>/dpad/up",
                     "interactions": "",
                     "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Vertical",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "1D Axis",
+                    "id": "ad8fd580-63cd-4499-a319-e81acb4902c4",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
                     "groups": "",
+                    "action": "Vertical",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "eafb7f03-4479-4d83-a950-f05787c38214",
+                    "path": "<Gamepad>/leftStick/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Vertical",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "735399a8-736b-42ef-8f8a-e7c21b83c195",
+                    "path": "<Gamepad>/leftStick/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
                     "action": "Vertical",
                     "isComposite": false,
                     "isPartOfComposite": true

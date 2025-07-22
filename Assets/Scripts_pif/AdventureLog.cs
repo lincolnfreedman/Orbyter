@@ -16,6 +16,10 @@ public class AdventureLog : MonoBehaviour
     private GameObject undiscovered2;
 
     [SerializeField]
+    private float pageFlipCooldown = 0.5f;
+    private float pageFlipCooldownTimer = 0f;
+
+    [SerializeField]
     private int currentPage;
     [SerializeField]
     private int lastPage;
@@ -23,6 +27,7 @@ public class AdventureLog : MonoBehaviour
     private Player_pip player;
     private PlayerInput playerInput;
     private InputAction moveAction;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -53,23 +58,30 @@ public class AdventureLog : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        UpdatePageFlipCooldown();
+
         // Handle horizontal input for page flipping
         if (moveAction != null && gameObject.activeInHierarchy)
         {
             Vector2 moveInput = moveAction.ReadValue<Vector2>();
             
-            // Check for horizontal input (with a threshold to avoid accidental triggers)
-            if (Mathf.Abs(moveInput.x) > 0.5f)
+            // Check to avoid flipping pages every frame
+            if (pageFlipCooldownTimer <= 0f)
             {
-                if (moveInput.x > 0 && currentPage < lastPage)
+                // Check for horizontal input (with a threshold to avoid accidental triggers)
+                if (Mathf.Abs(moveInput.x) > 0.5f)
                 {
-                    // Right input - next page
-                    NextPage();
-                }
-                else if (moveInput.x < 0 && currentPage > 1)
-                {
-                    // Left input - previous page
-                    PreviousPage();
+                    if (moveInput.x > 0 && currentPage < lastPage)
+                    {
+                        // Right input - next page
+                        NextPage();
+                    }
+                    else if (moveInput.x < 0 && currentPage > 1)
+                    {
+                        // Left input - previous page
+                        PreviousPage();
+                    }
+                    pageFlipCooldownTimer = pageFlipCooldown;
                 }
             }
         }
@@ -142,6 +154,14 @@ public class AdventureLog : MonoBehaviour
         else if (!GameManager.instance.pagesUnlocked[page2Index])
         {
             undiscovered2.SetActive(true);
+        }
+    }
+
+    private void UpdatePageFlipCooldown()
+    {
+        if (pageFlipCooldownTimer > 0f)
+        {
+            pageFlipCooldownTimer -= Time.fixedDeltaTime;
         }
     }
 }

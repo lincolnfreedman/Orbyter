@@ -5156,10 +5156,11 @@ MonoBehaviour:
   digCooldown: 1
   digAcceleration: 40
   maxDigVelocity: 15
-  sprayCooldown: 1
+  sprayCooldown: 0.5
   safeDistanceFromDamaging: 3
   maxHealth: 3
   currentHealth: 3
+  heartContainers: 0
   respawnMovementDisableDuration: 1.5
   invulnerabilityFrames: 1.5
   facingDirection: 1
