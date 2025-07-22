@@ -6,6 +6,9 @@ public class HeartContainer : MonoBehaviour
     [Tooltip("Tag that can collect this heart container (e.g., 'Player')")]
     public string playerTag = "Player";
 
+    [Tooltip("Whether this heart container is in the first scene")]
+    public bool isInFirstScene = false;
+
     [Tooltip("Whether this heart container has been collected (for debugging)")]
     [SerializeField] private bool isCollected = false;
 
@@ -39,8 +42,26 @@ public class HeartContainer : MonoBehaviour
         PlayerController_pif playerController = player.GetComponent<PlayerController_pif>();
         if (playerController != null)
         {
-            // Add to heart container count
-            playerController.AddHeartContainer();
+            // Check if this is a first scene heart container
+            if (isInFirstScene)
+            {
+                // Set the flag in GameManager instead of adding to player directly
+                GameManager gameManager = FindFirstObjectByType<GameManager>();
+                if (gameManager != null)
+                {
+                    gameManager.firstSceneHeartContainerCollected = true;
+                    Debug.Log("First scene heart container collected - flag set in GameManager");
+                }
+                else
+                {
+                    Debug.LogWarning("HeartContainer: Could not find GameManager to set first scene flag!");
+                }
+            }
+            else
+            {
+                // Normal heart container - add directly to player
+                playerController.AddHeartContainer();
+            }
 
             // Play collection sound effect
             Player_pip playerSFX = player.GetComponent<Player_pip>();

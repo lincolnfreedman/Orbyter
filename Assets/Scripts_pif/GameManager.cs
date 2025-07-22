@@ -24,6 +24,10 @@ public class GameManager : MonoBehaviour
     public bool IsMenuOpen => menuOpen;
     public bool IsAnyUIOpen => adventureLogOpen || menuOpen;
 
+    [Header("Heart Container Tracking")]
+    [Tooltip("Whether the heart container in the first scene has been collected")]
+    public bool firstSceneHeartContainerCollected = false;
+
     private void Awake()
     {
         if (instance == null)

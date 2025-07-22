@@ -98,6 +98,7 @@ public class PlayerController_pif : MonoBehaviour
     private bool isDigging = false;
     private bool isDigPhasing = false;
     private bool isInvulnerable = false;
+    private bool isCollectingUpgrade = false;
     public int facingDirection = 1;
     
     // Timers and counters
@@ -174,7 +175,30 @@ public class PlayerController_pif : MonoBehaviour
         startingPosition = transform.position;
         checkpointPosition = startingPosition;
     }
-
+    
+    void Start()
+    {
+        // Check if first scene heart container was collected
+        GameManager gameManager = FindFirstObjectByType<GameManager>();
+        if (gameManager != null && gameManager.firstSceneHeartContainerCollected)
+        {
+            heartContainers++;
+            Debug.Log($"First scene heart container applied on start. Heart containers: {heartContainers}");
+            
+            // Check if we should increase health (every 2 heart containers)
+            if (heartContainers >= 2 && heartContainers % 2 == 0)
+            {
+                // Increase maximum health
+                maxHealth++;
+                
+                // Increase current health (essentially healing the player and giving them the new heart)
+                currentHealth++;
+                
+                Debug.Log($"New heart gained from first scene container! Max health increased to {maxHealth}, current health: {currentHealth}");
+            }
+        }
+    }
+    
     // Update is called once per frame
     void Update()
     {
@@ -1181,7 +1205,10 @@ public class PlayerController_pif : MonoBehaviour
     {
         heartContainers++;
         Debug.Log($"Heart containers collected: {heartContainers}");
-        
+
+        // Start upgrade collection animation
+        StartCoroutine(PlayUpgradeCollectionAnimation());
+
         // Check if we should increase health (every 2 heart containers)
         if (heartContainers >= 2 && heartContainers % 2 == 0)
         {
@@ -1196,6 +1223,19 @@ public class PlayerController_pif : MonoBehaviour
             // TODO: Update health display UI here when health UI system is implemented
             // Example: HealthUI.UpdateDisplay(currentHealth, maxHealth);
         }
+    }
+    
+    public void TriggerUpgradeCollectionAnimation()
+    {
+        StartCoroutine(PlayUpgradeCollectionAnimation());
+    }
+
+    private IEnumerator PlayUpgradeCollectionAnimation()
+    {
+        isCollectingUpgrade = true;
+        // Animation plays for 1 second
+        yield return new WaitForSeconds(1f);
+        isCollectingUpgrade = false;
     }
     
     public int GetHeartContainers()
@@ -1246,56 +1286,50 @@ public class PlayerController_pif : MonoBehaviour
 
     private void HandleAnimations()
     {
-        // Always update velocity for movement animations (but it will only be used if no higher priority state is active)
         animator.SetFloat("Velocity", Mathf.Abs(rb.linearVelocity.x));
-        
         // Animation priority system (highest to lowest priority):
-        // 1. Digging (highest priority - overrides everything)
-        // 2. Spraying (high priority - overrides movement states)
-        // 3. Wall Clinging (medium-high priority)
-        // 4. Gliding (medium priority)
-        // 5. Jumping (lower priority)
-        // 6. Movement/Idle (lowest priority - handled by Velocity parameter and isGrounded)
-        
-        // Reset all state booleans first
+        // 1. Collecting Upgrade (highest priority - overrides everything)
+        // 2. Digging
+        // 3. Spraying
+        // 4. Wall Clinging
+        // 5. Gliding
+        // 6. Jumping
+        // 7. Movement/Idle
+
+        animator.SetBool("isCollectingUpgrade", false);
         animator.SetBool("isDigging", false);
         animator.SetBool("isSpraying", false);
         animator.SetBool("isWallClinging", false);
         animator.SetBool("isGliding", false);
         animator.SetBool("isJumping", false);
         animator.SetBool("isGrounded", false);
-        
-        // Set the highest priority active state
-        if (isDigging)
+
+        if (isCollectingUpgrade)
         {
-            // Digging has highest priority - overrides everything
+            animator.SetBool("isCollectingUpgrade", true);
+        }
+        else if (isDigging)
+        {
             animator.SetBool("isDigging", true);
         }
         else if (isSpraying)
         {
-            // Spraying has high priority - overrides movement states
-            // Do NOT set isGrounded when spraying to prevent idle/movement animations
             animator.SetBool("isSpraying", true);
         }
         else if (isWallClinging)
         {
-            // Wall clinging has medium-high priority
             animator.SetBool("isWallClinging", true);
         }
         else if (isGliding)
         {
-            // Gliding has medium priority
             animator.SetBool("isGliding", true);
         }
         else if (isJumping)
         {
-            // Jumping has lower priority
             animator.SetBool("isJumping", true);
         }
         else
         {
-            // Only set grounded state if no higher priority states are active
-            // This ensures movement/idle animations only play when appropriate
             animator.SetBool("isGrounded", isGrounded);
         }
     }

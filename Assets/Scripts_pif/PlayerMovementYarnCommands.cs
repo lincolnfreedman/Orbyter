@@ -78,6 +78,10 @@ public class PlayerMovementYarnCommands : MonoBehaviour
     [Tooltip("Delay between each talk sound repetition")]
     public float delayBetweenSounds = 0.5f;
     
+    [Header("Fire Chase")]
+    [Tooltip("GameObject to enable when fire chase starts")]
+    public GameObject chasingFires;
+    
     public AudioSource audioSource;
     private Coroutine currentTalkCoroutine;
     
@@ -109,6 +113,7 @@ public class PlayerMovementYarnCommands : MonoBehaviour
         {
             dialogueRunner.AddCommandHandler("disable_dialogue", DisableDialogue);
             dialogueRunner.AddCommandHandler("enable_dialogue", EnableDialogue);
+            dialogueRunner.AddCommandHandler("enable_fire_chase", EnableFireChase);
             
             // Register simple character dialogue commands
             dialogueRunner.AddCommandHandler("jay_talk", StartJayTalk);
@@ -281,6 +286,14 @@ public class PlayerMovementYarnCommands : MonoBehaviour
         if (playerController != null)
         {
             playerController.DisableMovement();
+        }
+    }
+
+    public void EnableFireChase()
+    {
+        if (chasingFires != null)
+        {
+            chasingFires.SetActive(true);
         }
     }
 

@@ -6,15 +6,18 @@ public class DialogueTrigger : MonoBehaviour
     [Header("Dialogue Settings")]
     [Tooltip("The name of the Yarn dialogue node to start when triggered")]
     public string dialogueName = "Start";
-    
+    [Tooltip("The name of the second Yarn dialogue node to start after the first")]
+    public string dialogue2Name;
+    [Tooltip("The name of the third Yarn dialogue node to start after the second")]
+    public string dialogue3Name;
+    [Tooltip("The name of the backtrack Yarn dialogue node to start (optional)")]
+    public string dialogueBacktrackName;
+
     [Header("Trigger Settings")]
     [Tooltip("Tag that can trigger this dialogue (e.g., 'Player')")]
     string triggerTag = "Player";
-    
-    [Tooltip("Whether this dialogue can only be triggered once")]
-    public bool triggerOnce = false;
-    
-    private bool hasTriggered = false;
+
+    private int dialogueStage = 0; // 0 = first, 1 = second, 2 = third, 3 = backtrack
     private DialogueRunner dialogueRunner;
 
     void Start()
@@ -41,56 +44,65 @@ public class DialogueTrigger : MonoBehaviour
             TriggerDialogue();
         }
     }
-    
+
     private void TriggerDialogue()
     {
-        // Check if we should prevent triggering
-        if (triggerOnce && hasTriggered)
-        {
-            return;
-        }
-        
         if (dialogueRunner == null)
         {
             Debug.LogError($"DialogueTrigger on {gameObject.name}: Cannot start dialogue - no DialogueRunner found!");
             return;
         }
-        
-        if (string.IsNullOrEmpty(dialogueName))
-        {
-            Debug.LogError($"DialogueTrigger on {gameObject.name}: Cannot start dialogue - dialogue name is empty!");
-            return;
-        }
-        
-        // Check if dialogue is already running
+
         if (dialogueRunner.IsDialogueRunning)
         {
             Debug.Log($"DialogueTrigger on {gameObject.name}: Dialogue already running, skipping trigger.");
             return;
         }
-        
-        // Start the dialogue
+
+        string nodeToPlay = null;
+        if (dialogueStage == 0 && !string.IsNullOrEmpty(dialogueName))
+        {
+            nodeToPlay = dialogueName;
+        }
+        else if (dialogueStage == 1 && !string.IsNullOrEmpty(dialogue2Name))
+        {
+            nodeToPlay = dialogue2Name;
+        }
+        else if (dialogueStage == 2 && !string.IsNullOrEmpty(dialogue3Name))
+        {
+            nodeToPlay = dialogue3Name;
+        }
+        else if (dialogueStage == 3 && !string.IsNullOrEmpty(dialogueBacktrackName))
+        {
+            nodeToPlay = dialogueBacktrackName;
+        }
+        else
+        {
+            // No more dialogues to play
+            return;
+        }
+
         try
         {
-            dialogueRunner.StartDialogue(dialogueName);
-            hasTriggered = true;
-            Debug.Log($"DialogueTrigger on {gameObject.name}: Started dialogue node '{dialogueName}'");
+            dialogueRunner.StartDialogue(nodeToPlay);
+            dialogueStage++;
+            Debug.Log($"DialogueTrigger on {gameObject.name}: Started dialogue node '{nodeToPlay}'");
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"DialogueTrigger on {gameObject.name}: Failed to start dialogue '{dialogueName}': {e.Message}");
+            Debug.LogError($"DialogueTrigger on {gameObject.name}: Failed to start dialogue '{nodeToPlay}': {e.Message}");
         }
     }
-    
+
     // Optional: Public method to manually trigger dialogue
     public void ManualTrigger()
     {
         TriggerDialogue();
     }
-    
+
     // Optional: Reset the trigger so it can be used again
     public void ResetTrigger()
     {
-        hasTriggered = false;
+        dialogueStage = 0;
     }
 }

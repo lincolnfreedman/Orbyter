@@ -12,6 +12,9 @@ public class AbilityUnlock : MonoBehaviour
     [Tooltip("Whether this unlock can only be triggered once")]
     public bool triggerOnce = true;
     
+    [Tooltip("Optional: Yarn dialogue node to start when ability is collected")]
+    public string dialogueName;
+    
     private bool hasTriggered = false;
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -39,7 +42,28 @@ public class AbilityUnlock : MonoBehaviour
             
             // Unlock the ability
             AbilityManager.UnlockAbility(abilityName);
-            
+
+            // Trigger upgrade collection animation on player
+            var playerController = other.GetComponent<PlayerController_pif>();
+            if (playerController != null)
+            {
+                playerController.TriggerUpgradeCollectionAnimation();
+            }
+
+            // Start dialogue node if specified
+            if (!string.IsNullOrEmpty(dialogueName))
+            {
+                var dialogueRunner = FindFirstObjectByType<Yarn.Unity.DialogueRunner>();
+                if (dialogueRunner != null)
+                {
+                    dialogueRunner.StartDialogue(dialogueName);
+                }
+                else
+                {
+                    Debug.LogWarning("AbilityUnlock: No DialogueRunner found in scene to start dialogue.");
+                }
+            }
+
             // Mark as triggered
             hasTriggered = true;
             

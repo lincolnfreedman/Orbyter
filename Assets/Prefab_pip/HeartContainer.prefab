@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8648769870742672964}
   - component: {fileID: 7102997368672511651}
   - component: {fileID: 8420279493032159935}
+  - component: {fileID: -4191088415756908442}
   m_Layer: 0
   m_Name: HeartContainer
   m_TagString: Untagged
@@ -149,3 +150,21 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 20.18, y: 20.18}
   m_EdgeRadius: 0
+--- !u!114 &-4191088415756908442
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6932824925455670080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffd9a14ff87087a41b23db61c0d0c371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipText: Orb Collected
+  triggerTag: Player
+  triggerOnce: 1
+  requireInputToDismiss: 0
+  dismissInputAction: 
+  displayDuration: 1.4
