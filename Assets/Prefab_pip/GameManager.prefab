@@ -45,5 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   adventureLog: {fileID: 0}
-  pagesUnlocked: 01010000
+  pauseMenu: {fileID: 0}
+  pagesUnlocked: 010101010101010101010101
   playerInput: {fileID: 0}

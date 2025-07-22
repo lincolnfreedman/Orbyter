@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using Mono.Cecil.Cil;
 
 public class AdventureLog : MonoBehaviour
 {
@@ -14,6 +15,10 @@ public class AdventureLog : MonoBehaviour
     private GameObject undiscovered1;
     [SerializeField]
     private GameObject undiscovered2;
+    [SerializeField]
+    private GameObject previouseArrow;
+    [SerializeField]
+    private GameObject nextArrow;
 
     [SerializeField]
     private float pageFlipCooldown = 0.5f;
@@ -138,6 +143,7 @@ public class AdventureLog : MonoBehaviour
         page2.sprite = pages[page1Index];
         page1.sprite = pages[page2Index];
         
+        // Set whether page 1 is visible or not based on unlock status
         if (GameManager.instance.pagesUnlocked[page1Index])
         {
             undiscovered1.SetActive(false);
@@ -147,6 +153,7 @@ public class AdventureLog : MonoBehaviour
             undiscovered1.SetActive(true);
         }
 
+        // Set whether page 2 is visible or not based on unlock status
         if (GameManager.instance.pagesUnlocked[page2Index])
         {
             undiscovered2.SetActive(false);
@@ -154,6 +161,23 @@ public class AdventureLog : MonoBehaviour
         else if (!GameManager.instance.pagesUnlocked[page2Index])
         {
             undiscovered2.SetActive(true);
+        }
+
+        // Turn on or off arrows based on current page
+        if (currentPage == 1) // On First Page
+        {
+            previouseArrow.SetActive(false);
+            nextArrow.SetActive(true);
+        }
+        else if (currentPage == lastPage) // On Last Page
+        {
+            previouseArrow.SetActive(true);
+            nextArrow.SetActive(false);
+        }
+        else // Any other page
+        {
+            previouseArrow.SetActive(true);
+            nextArrow.SetActive(true);
         }
     }
 
