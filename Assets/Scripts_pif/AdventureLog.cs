@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
-using Mono.Cecil.Cil;
 
 public class AdventureLog : MonoBehaviour
 {
