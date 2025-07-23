@@ -109,7 +109,7 @@ Samuel Salamander: Any time, stranger!
 title: Samuel_backtrack
 ---
 <<enable_dialogue>>
-<<show_samuel_angry>>
+<<show_samuel_mad>>
 <<samuel_talk>>
 Samuel Salamander: Back off, fires! Leave our home alone!
 
@@ -117,9 +117,18 @@ Samuel Salamander: Back off, fires! Leave our home alone!
 <<scarf_talk>>
 Scarf: Step back, lil dude! You’ll hurt yourself!
 
-<<show_samuel_angry>>
+<<show_samuel_default>>
 <<samuel_talk>>
-Samuel Salamander: I’ll think of something!
+Samuel Salamander: WHOA! How’d you do that?! Can you teach me?!
+
+<<show_scarf_default>>
+<<scarf_talk>>
+Scarf: We’ll see! I gotta take care of these flames first!
+
+<<samuel_talk>>
+<<show_samuel_happy>>
+Samuel Salamander: Yeah! Let’s get ‘em, stranger!
+
 <<disable_dialogue>>
 ===
 
