@@ -86,6 +86,7 @@ public class WaterSpout : MonoBehaviour
             
             // Check if any overlapping colliders are not the player and not Fire objects and not EventTrigger objects
             isTouchingSomething = false;
+            
             for (int i = 0; i < count; i++)
             {
                 if (overlapping[i] != null)
@@ -96,13 +97,13 @@ public class WaterSpout : MonoBehaviour
                         Destroy(overlapping[i].gameObject);
                         continue;
                     }
-                    
+
                     // Ignore EventTrigger layer objects
                     if (overlapping[i].gameObject.layer == LayerMask.NameToLayer("EventTrigger"))
                     {
                         continue;
                     }
-                    
+
                     // Check if it's not the player
                     if (!IsPlayerCollider(overlapping[i]))
                     {

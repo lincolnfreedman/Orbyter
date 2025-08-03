@@ -25,7 +25,11 @@ public class TooltipTrigger : MonoBehaviour
     
     [Tooltip("Duration to show tooltip (0 = show indefinitely). Only used when requireInputToDismiss is false")]
     public float displayDuration = 3f;
-    
+
+    [Header("Ability Unlock Tooltip")]
+    [Tooltip("If true, blocks all other tooltips until this one is dismissed")]
+    public bool isAbilityUnlock = false;
+
     private bool hasTriggered = false;
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -43,7 +47,13 @@ public class TooltipTrigger : MonoBehaviour
         {
             return;
         }
-        
+
+        // Prevent other tooltips if ability unlock is active
+        if (TooltipSystem.Instance != null && TooltipSystem.Instance.IsBlockingOtherTooltips() && !isAbilityUnlock)
+        {
+            return;
+        }
+
         // Show tooltip through static instance
         if (TooltipSystem.Instance != null)
         {
@@ -56,6 +66,12 @@ public class TooltipTrigger : MonoBehaviour
                 TooltipSystem.Instance.ShowTooltip(tooltipText, "", displayDuration);
             }
             hasTriggered = true;
+
+            // If this is an ability unlock tooltip, block other tooltips until dismissed
+            if (isAbilityUnlock)
+            {
+                TooltipSystem.Instance.SetBlockingOtherTooltips(true);
+            }
         }
         else
         {

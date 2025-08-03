@@ -103,6 +103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerTag: Player
+  isInFirstScene: 0
   isCollected: 0
 --- !u!61 &8420279493032159935
 BoxCollider2D:
@@ -162,9 +163,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffd9a14ff87087a41b23db61c0d0c371, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tooltipText: Orb Collected
+  tooltipText: Orb Collected (1/2 for Upgrade)
   triggerTag: Player
   triggerOnce: 1
   requireInputToDismiss: 0
   dismissInputAction: 
   displayDuration: 1.4
+  isAbilityUnlock: 0

@@ -17,6 +17,7 @@ public class TooltipSystem : MonoBehaviour
     private string currentDismissAction;
     private InputAction dismissAction;
     private float displayTimer = 0f;
+    private bool blockingOtherTooltips = false;
     
     private void Awake()
     {
@@ -72,6 +73,11 @@ public class TooltipSystem : MonoBehaviour
     {
         gameObject.SetActive(false);
         ClearInputAction();
+        // Unblock other tooltips if we were blocking for ability unlock
+        if (blockingOtherTooltips)
+        {
+            blockingOtherTooltips = false;
+        }
     }
     
     private void SetupInputAction()
@@ -129,5 +135,15 @@ public class TooltipSystem : MonoBehaviour
             Debug.Log($"TooltipSystem: Dismiss action '{currentDismissAction}' triggered - hiding tooltip");
             HideTooltip();
         }
+    }
+
+    public bool IsBlockingOtherTooltips()
+    {
+        return blockingOtherTooltips;
+    }
+
+    public void SetBlockingOtherTooltips(bool block)
+    {
+        blockingOtherTooltips = block;
     }
 }

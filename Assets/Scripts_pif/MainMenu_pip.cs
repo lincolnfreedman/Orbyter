@@ -33,10 +33,12 @@ public class MainMenu_pip : MonoBehaviour
     private Slider BGMSlider;
     [SerializeField]
     private Button extrasBackButton;
-    [SerializeField]
-    private bool isTitleScreen = true;
+    
+    // Replace the isTitleScreen boolean with a property that checks the current scene
+    private bool IsTitleScreen => SceneManager.GetActiveScene().name == "MainMenu";
+    
+    private GameManager gm;
     private GameObject lastSelected;
-
 
     private CurrentScreen currentScreen;
 
@@ -44,11 +46,11 @@ public class MainMenu_pip : MonoBehaviour
     void Start()
     {
         currentScreen = CurrentScreen.Main;
-
+        gm = FindFirstObjectByType<GameManager>();
         LoadPlayerPrefs();
         
         // Set initial selection based on whether this is the title screen
-        if (!isTitleScreen)
+        if (!IsTitleScreen)
         {
             controlsButton.Select();
         }
@@ -85,14 +87,40 @@ public class MainMenu_pip : MonoBehaviour
     {
         Application.Quit();
     }
+    public void LoadSaveGame()
+    {
+        if (gm != null && gm.HasSaveGame())
+        {
+            gm.LoadGame();
+        }
+        else
+        {
+            Debug.LogWarning("No save game found to load.");
+        }
+    }
 
     public void BackButton()
     {
         switch (currentScreen)
         {
             case CurrentScreen.Main:
+                if (!IsTitleScreen)
+                {
+                    if (gm != null)
+                    {
+                        gm.CloseMenu();
+                    }
+                }
                 break;
             case CurrentScreen.Settings:
+                if (!IsTitleScreen)
+                {
+                    if (gm != null)
+                    {
+                        gm.CloseMenu();
+                        break;
+                    }
+                }
                 CloseSettingsMenu();
                 break;
             case CurrentScreen.Controls:
@@ -117,9 +145,6 @@ public class MainMenu_pip : MonoBehaviour
 
     public void CloseSettingsMenu()
     {
-        // Do nothing if this is not the title screen
-        if (!isTitleScreen)
-            return;
             
         fade.SetActive(false);
         settingsMenu.SetActive(false);

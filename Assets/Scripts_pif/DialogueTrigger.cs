@@ -128,4 +128,25 @@ public class DialogueTrigger : MonoBehaviour
         dialogueStage = 0;
         backtrackPlayed = false;
     }
+
+    // Getters and setters for save/load system
+    public int GetDialogueStage()
+    {
+        return dialogueStage;
+    }
+
+    public void SetDialogueStage(int stage)
+    {
+        dialogueStage = stage;
+    }
+
+    public bool GetBacktrackPlayed()
+    {
+        return backtrackPlayed;
+    }
+
+    public void SetBacktrackPlayed(bool played)
+    {
+        backtrackPlayed = played;
+    }
 }

@@ -27,6 +27,7 @@ public class SceneTransition : MonoBehaviour
     private PlayerController_pif playerController;
     private float originalMusicVolume;
     private Animator cutsceneAnimator;
+    private GameManager gm;
     
     private void Start()
     {
@@ -35,7 +36,7 @@ public class SceneTransition : MonoBehaviour
         {
             originalMusicVolume = musicPlayer.volume;
         }
-        
+
         // Get cutscene animator if cutscene object is assigned
         if (cutsceneObject != null)
         {
@@ -68,6 +69,11 @@ public class SceneTransition : MonoBehaviour
     
     private void StartCutscene()
     {
+        gm = FindFirstObjectByType<GameManager>();
+        if (gm != null)
+        {
+            gm.IsCutscenePlaying = true;
+        }
         // Disable player movement
         if (playerController != null)
         {
@@ -160,7 +166,7 @@ public class SceneTransition : MonoBehaviour
     
     private void LoadScene()
     {
-        
+        gm.IsCutscenePlaying = false;
         // Use scene index if specified (not -1), otherwise use scene name
         if (sceneIndex >= 0)
         {

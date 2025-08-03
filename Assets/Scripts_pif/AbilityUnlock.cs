@@ -9,23 +9,17 @@ public class AbilityUnlock : MonoBehaviour
     [Tooltip("Tag that can trigger this unlock (e.g., 'Player')")]
     public string triggerTag = "Player";
     
-    [Tooltip("Whether this unlock can only be triggered once")]
-    public bool triggerOnce = true;
+
     
     [Tooltip("Optional: Yarn dialogue node to start when ability is collected")]
     public string dialogueName;
     
-    private bool hasTriggered = false;
+
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag(triggerTag))
         {
-            // Check if we should prevent triggering
-            if (triggerOnce && hasTriggered)
-            {
-                return;
-            }
             
             // Get the player's SFX component to play powerup sound
             Player_pip playerSFX = other.GetComponent<Player_pip>();
@@ -64,16 +58,13 @@ public class AbilityUnlock : MonoBehaviour
                 }
             }
 
-            // Mark as triggered
-            hasTriggered = true;
+            
             
             Debug.Log($"AbilityUnlock: Player unlocked ability '{abilityName}'");
-            
+
             // Optionally disable the GameObject after unlock
-            if (triggerOnce)
-            {
-                gameObject.SetActive(false);
-            }
+            gameObject.SetActive(false);
+            
         }
     }
 }

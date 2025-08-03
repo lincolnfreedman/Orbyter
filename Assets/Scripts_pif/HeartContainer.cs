@@ -77,7 +77,12 @@ public class HeartContainer : MonoBehaviour
             Debug.LogWarning("HeartContainer: Could not find PlayerController_pif component on player!");
         }
 
-        // Destroy the heart container
-        Destroy(gameObject);
+        gameObject.SetActive(false);
+    }
+
+    // Add public getter for save system
+    public bool IsCollected()
+    {
+        return isCollected;
     }
 }

@@ -17,8 +17,10 @@ Scarf: What the … You can't be Sirius!
 <<highlight_text>>
 Scarf: AI?! Was draining Earth not enough…?
 Scarf: I should avoid getting caught.
+<<show_adventure_log_tooltip>>
 <<unlock_adventure_page 0>>
 <<unlock_adventure_page 1>>
+<<show_adventure_log_tooltip>>
 <<disable_dialogue>>
 ===
 
@@ -52,6 +54,17 @@ Scarf: I can't breathe, I need to get out of here!
 <<disable_dialogue>>
 ===
 
+title: FoundWreckage
+---
+<<enable_dialogue>>
+<<scarf_talk>>
+<<show_scarf_nervous>>
+Scarf: I found it! It's my ship.
+<<scarf_talk>>
+Scarf: I have to put these fires out or it will keep spreading to the forest.
+<<disable_dialogue>>
+===
+
 title: FireChase
 ---
 <<enable_dialogue>>
@@ -60,6 +73,16 @@ title: FireChase
 Scarf: Oh shoot! The fire's closing in from all sides!
 <<scarf_talk>>
 Scarf: I've gotta find some other way out
+<<disable_dialogue>>
+===
+
+title: Groundwater
+---
+<<enable_dialogue>>
+<<scarf_talk>>
+Scarf: The groundwater down here is incredibly important for the ecosystem above.
+<<scarf_talk>>
+Scarf: I need to get back up and use this to save the forest.
 <<disable_dialogue>>
 ===
 
@@ -103,6 +126,7 @@ Scarf: Noted! Thanks, little buddy!
 Samuel Salamander: Any time, stranger!
 <<unlock_adventure_page 4>>
 <<unlock_adventure_page 5>>
+<<show_adventure_log_tooltip>>
 <<disable_dialogue>>
 ===
 
@@ -181,6 +205,7 @@ Jay Jackrabbit: I’ve been working with plastic in the environment to make spli
 Scarf: That’s impressive! You’re doing a great job, Jay.
 <<unlock_adventure_page 2>>
 <<unlock_adventure_page 3>>
+<<show_adventure_log_tooltip>>
 <<disable_dialogue>>
 ===
 
@@ -243,6 +268,7 @@ Tucker Tortoise: Be very curious, but very cautious as well, young stranger.
 Tucker Tortoise: Danger can come any time, anywhere.
 <<unlock_adventure_page 6>>
 <<unlock_adventure_page 7>>
+<<show_adventure_log_tooltip>>
 <<disable_dialogue>>
 ===
 
@@ -371,6 +397,7 @@ Molly Mouse: No bruh, you don't get it. The artist drew me with a scar under thi
 Scarf: Oh, uh.. Sorry to hear that…. I have no clue what's going on.
 <<unlock_adventure_page 8>>
 <<unlock_adventure_page 9>>
+<<show_adventure_log_tooltip>>
 <<disable_dialogue>>
 ===
 

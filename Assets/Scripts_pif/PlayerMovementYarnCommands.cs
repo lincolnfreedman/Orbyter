@@ -152,6 +152,7 @@ public class PlayerMovementYarnCommands : MonoBehaviour
             
             // Register adventure log commands
             dialogueRunner.AddCommandHandler<int>("unlock_adventure_page", UnlockAdventurePage);
+            dialogueRunner.AddCommandHandler("show_adventure_log_tooltip", ShowAdventureLogTooltip);
         }
     }
     
@@ -536,5 +537,14 @@ public class PlayerMovementYarnCommands : MonoBehaviour
         {
             Debug.LogWarning("UnlockAdventurePage: GameManager or pagesUnlocked array is null.");
         }
+    }
+
+    /// <summary>
+    /// Shows a tooltip for new adventure log entry for 1.5 seconds using TooltipSystem.
+    /// Usage in Yarn: <<show_adventure_log_tooltip>>
+    /// </summary>
+    public void ShowAdventureLogTooltip()
+    {
+        TooltipSystem.Instance.ShowTooltip("New adventure log entry added","", 1.5f);
     }
 }

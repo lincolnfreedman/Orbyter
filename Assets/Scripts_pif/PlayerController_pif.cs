@@ -94,6 +94,7 @@ public class PlayerController_pif : MonoBehaviour
     private bool isFastFalling = false;
     private bool isWallKickingOff = false;
     private bool isSpraying = false;
+    private bool isSprayingHorizontally = false;
     private int sprayDirection = 0; //0 = Down, 1 = Up, 2 = Horizontal
     private bool isDigging = false;
     private bool isDigPhasing = false;
@@ -285,6 +286,10 @@ public class PlayerController_pif : MonoBehaviour
         {
             rb.gravityScale = 0f; // No gravity while wall clinging
         }
+        else if (isSprayingHorizontally)
+        {
+            rb.gravityScale = 0f; // No gravity while spraying horizontally
+        }
         else if (isSpraying)
         {
             rb.gravityScale = gravityWhileJumping; // Use jumping gravity while spraying
@@ -305,6 +310,17 @@ public class PlayerController_pif : MonoBehaviour
     
     private void HandleFastFalling()
     {
+        // Prevent fast fall from activating while gliding
+        if (isGliding)
+        {
+            // If gliding, ignore fast fall input
+            if (isFastFalling)
+            {
+                isFastFalling = false;
+            }
+            return;
+        }
+
         // Check if fastfall button is held and we're in the air (but not jumping, gliding, digging, or spraying)
         // Fast fall can be used while wall clinging to cancel the wall cling
         if (fastFallAction.IsPressed() && !isGrounded && !isJumping && !isGliding && !isDigging && !isSpraying)
@@ -376,6 +392,7 @@ public class PlayerController_pif : MonoBehaviour
             if (Mathf.Abs(sprayDirection.x) > 0.1f && Mathf.Abs(sprayDirection.y) < 0.1f)
             {
                 rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+                isSprayingHorizontally = true; // Set horizontal spray flag
             }
 
             // Start spray duration and mark as used
@@ -427,7 +444,7 @@ public class PlayerController_pif : MonoBehaviour
             }
             
             sprayTimer -= Time.deltaTime;
-            
+
             // End spray if duration expires OR if spray button is released
             if (sprayTimer <= 0f || !sprayAction.IsPressed())
             {
@@ -438,6 +455,7 @@ public class PlayerController_pif : MonoBehaviour
                     currentWaterSpout = null;
                 }
                 isSpraying = false;
+                isSprayingHorizontally = false;
             }
         }
     }
@@ -855,26 +873,31 @@ public class PlayerController_pif : MonoBehaviour
     
     private void StartGliding(Vector2 moveInput)
     {
-        // Stop fast falling if currently fast falling
+        // If fast falling, cancel fast fall and counteract fast fall velocity
         if (isFastFalling)
         {
             isFastFalling = false;
+            // Counteract fast fall velocity if currently falling at or below fast fall speed
+            if (rb.linearVelocity.y <= -fastFallVelocity)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + fastFallVelocity);
+            }
         }
-        //dd
         glidingCollider.enabled = true;
         normalCollider.enabled = false;
         isGliding = true;
         isJumping = false;
         glideTimer = 0f;
-        
+
         // Start glide sound effect loop
         player.PlayerSFX(3);
-        
-        if (rb.linearVelocity.y < 0)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * glideVelocityMultiplier);
-        }
-        
+
+        // Remove glideVelocityMultiplier effect
+        // if (rb.linearVelocity.y < 0)
+        // {
+        //     rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * glideVelocityMultiplier);
+        // }
+
         if (moveInput.x == 0)
         {
             rb.linearVelocity = new Vector2(facingDirection * moveSpeed, rb.linearVelocity.y);
@@ -1252,6 +1275,7 @@ public class PlayerController_pif : MonoBehaviour
         isFastFalling = false;
         isWallKickingOff = false;
         isSpraying = false;
+        isSprayingHorizontally = false; 
         isDigging = false;
         isDigPhasing = false;
         isDigExiting = false;
@@ -1654,6 +1678,7 @@ public class PlayerController_pif : MonoBehaviour
                 // Use reflection to call IsTouchingSomething method
                 // This call is important even when grounded as it handles fire destruction
                 var method = spoutComponent.GetType().GetMethod("IsTouchingSomething");
+                Debug.Log("is spout touching something " + method);
                 if (method != null)
                 {
                     isTouching = (bool)(method.Invoke(spoutComponent, null) ?? false);
@@ -1797,6 +1822,7 @@ public class PlayerController_pif : MonoBehaviour
         if (isSpraying)
         {
             isSpraying = false;
+            isSprayingHorizontally = false;
             if (currentWaterSpout != null)
             {
                 Destroy(currentWaterSpout);
@@ -1842,6 +1868,7 @@ public class PlayerController_pif : MonoBehaviour
     
     public void SetCheckpoint(Vector3 position)
     {
+        lastGroundedPosition = position;
         checkpointPosition = position;
         hasCheckpoint = true;
         Debug.Log($"Checkpoint set at position: {position}");

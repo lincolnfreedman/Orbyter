@@ -9,6 +9,8 @@ public class TriggerEnd : MonoBehaviour
 
     private Animator cutsceneAnimator;
     private bool cutscenePlaying = false;
+    private bool creditsShown = false;
+    private bool endingTriggered = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -22,11 +24,25 @@ public class TriggerEnd : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         // Check if the colliding object has the Player tag
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && !endingTriggered)
         {
-            var gm = FindFirstObjectByType<GameManager>();
+            endingTriggered = true;
+            
+            // Disable player movement permanently
+            GameManager gm = FindFirstObjectByType<GameManager>();
+            if (gm != null)
+            {
+                gm.IsCutscenePlaying = true;
+            }
+            var playerController = other.GetComponent<PlayerController_pif>();
+            if (playerController != null)
+            {
+                playerController.DisableMovement();
+            }
+
             if (gm != null && gm.forestCleansed)
             {
+                // Good ending
                 if (cutscene != null && !cutscenePlaying)
                 {
                     cutscene.SetActive(true);
@@ -35,6 +51,7 @@ public class TriggerEnd : MonoBehaviour
             }
             else
             {
+                // Bad ending
                 if (badEndImage != null)
                 {
                     badEndImage.SetActive(true);
@@ -50,7 +67,12 @@ public class TriggerEnd : MonoBehaviour
         if (badEndImage != null)
             badEndImage.SetActive(false);
         if (credits != null)
+        {
             credits.SetActive(true);
+            creditsShown = true;
+            // Start the credits timer for bad ending
+            StartCoroutine(WaitForCreditsToFinish(true)); // true = bad ending
+        }
     }
 
     // Update is called once per frame
@@ -66,9 +88,39 @@ public class TriggerEnd : MonoBehaviour
                 if (credits != null)
                 {
                     credits.SetActive(true);
+                    creditsShown = true;
+                    // Start the credits timer for good ending
+                    StartCoroutine(WaitForCreditsToFinish(false)); // false = good ending
                 }
                 cutscenePlaying = false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Waits 15 seconds after credits start, then loads main menu with appropriate try again message setting
+    /// </summary>
+    /// <param name="isBadEnding">True if bad ending was reached</param>
+    private System.Collections.IEnumerator WaitForCreditsToFinish(bool isBadEnding)
+    {
+        // Wait 15 seconds while keeping everything disabled
+        yield return new WaitForSeconds(15f);
+        
+        // Re-enable all game functionality immediately before loading main menu
+        GameManager gm = FindFirstObjectByType<GameManager>();
+        if (gm != null)
+        {
+            // Re-enable cutscene state (allows adventure log and menu to be opened)
+            gm.IsCutscenePlaying = false;
+            
+            
+            // Show try again message for bad ending, hide it for good ending
+            gm.LoadMainMenuWithTryAgainControl(isBadEnding);
+        }
+        else
+        {
+            Debug.LogWarning("TriggerEnd: GameManager not found, loading main menu normally");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
     }
 }
